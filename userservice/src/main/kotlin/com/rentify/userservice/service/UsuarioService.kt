@@ -17,7 +17,7 @@ class UsuarioService(
         return usuarioRepository.findAll()
     }
 
-    fun buscarPorEmail(email: String): Usuario? {
-        return usuarioRepository.findByEmail(email)
+    fun buscarPorId(id: Long): Usuario? {
+        return usuarioRepository.findById(id).orElse(null)
     }
 }

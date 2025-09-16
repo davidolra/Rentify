@@ -20,8 +20,9 @@ class UsuarioController(
         return usuarioService.obtenerUsuarios()
     }
 
-    @GetMapping("/{email}")
-    fun obtenerUsuarioPorEmail(@PathVariable email: String): Usuario? {
-        return usuarioService.buscarPorEmail(email)
+    // Buscar usuario por id
+    @GetMapping("/{id}")
+    fun obtenerUsuarioPorId(@PathVariable id: Long): Usuario? {
+        return usuarioService.buscarPorId(id)
     }
 }
