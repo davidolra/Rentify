@@ -21,7 +21,7 @@ class UsuarioController(
     }
 
     // Buscar usuario por id
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     fun obtenerUsuarioPorId(@PathVariable id: Long): Usuario? {
         return usuarioService.buscarPorId(id)
     }
