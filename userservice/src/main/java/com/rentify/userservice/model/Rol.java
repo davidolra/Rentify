@@ -1,11 +1,20 @@
-package com.rentify.userservice;
+package com.rentify.userservice.model;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import jakarta.persistence.*;
+import lombok.*;
 
-@SpringBootApplication
-public class UserserviceApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(UserserviceApplication.class, args);
-    }
+@Entity
+@Table(name = "rol")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Rol {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, length = 60)
+    private String nombre;
 }
