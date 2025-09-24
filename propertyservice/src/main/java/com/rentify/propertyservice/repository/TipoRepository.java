@@ -7,5 +7,5 @@ import java.util.List;
 
 @Repository
 public interface TipoRepository extends JpaRepository<Tipo, Long> {
-    List<Tipo> findByPropertyId(Long propertyId);
 }
+

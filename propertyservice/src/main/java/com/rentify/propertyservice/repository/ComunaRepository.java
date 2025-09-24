@@ -7,5 +7,5 @@ import java.util.List;
 
 @Repository
 public interface ComunaRepository extends JpaRepository<Comuna, Long> {
-    List<Comuna> findByPropertyId(Long propertyId);
+
 }

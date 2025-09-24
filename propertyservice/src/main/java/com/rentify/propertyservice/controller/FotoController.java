@@ -1,7 +1,7 @@
 package com.rentify.propertyservice.controller;
 
 import com.rentify.propertyservice.model.Foto;
-import com.rentify.propertyservice.service.PhotoService;
+import com.rentify.propertyservice.service.FotoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FotoController {
 
-    private final FotoService FotoService;
+    private final FotoService fotoService;
 
     @PostMapping("/propiedades/{id}/fotos")
     public ResponseEntity<?> uploadFoto(@PathVariable Long id, @RequestParam("file") MultipartFile file) {

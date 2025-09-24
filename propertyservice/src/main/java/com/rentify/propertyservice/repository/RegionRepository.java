@@ -7,5 +7,5 @@ import java.util.List;
 
 @Repository
 public interface RegionRepository extends JpaRepository<Region, Long> {
-    List<Region> findByPropertyId(Long propertyId);
+
 }
