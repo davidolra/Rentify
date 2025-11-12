@@ -27,9 +27,11 @@ public class SolicitudArriendo {
     @Column(name = "propiedad_id", nullable = false)
     private Long propiedadId;
 
+    @NotNull(message = "El estado es obligatorio")
     @Column(nullable = false, length = 20)
     private String estado; // PENDIENTE, ACEPTADA, RECHAZADA
 
+    @NotNull(message = "La fecha de solicitud es obligatoria")
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "fecha_solicitud", nullable = false)
     private Date fechaSolicitud;

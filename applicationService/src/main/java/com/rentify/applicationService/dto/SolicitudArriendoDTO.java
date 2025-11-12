@@ -21,11 +21,12 @@ public class SolicitudArriendoDTO {
     private Long propiedadId;
 
     private String estado;
+
     private Date fechaSolicitud;
 
-    // Información adicional de otros microservicios
-    private String nombreUsuario;
-    private String emailUsuario;
-    private String direccionPropiedad;
-    private Double precioPropiedad;
+    // Información adicional que viene de otros microservicios
+    private UsuarioDTO usuario;
+    private PropiedadDTO propiedad;
 }
+
+

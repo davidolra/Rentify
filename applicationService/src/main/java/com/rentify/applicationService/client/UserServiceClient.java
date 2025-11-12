@@ -1,15 +1,15 @@
 package com.rentify.applicationService.client;
 
-import com.rentify.applicationService.dto.external.UserResponse;
-import com.rentify.applicationService.exception.ResourceNotFoundException;
-import com.rentify.applicationService.exception.ServiceCommunicationException;
+import com.rentify.applicationService.dto.UsuarioDTO;
+import com.rentify.applicationService.exception.MicroserviceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
+
+import java.time.Duration;
 
 @Component
 @RequiredArgsConstructor
@@ -21,31 +21,31 @@ public class UserServiceClient {
     @Value("${microservices.user-service.url}")
     private String userServiceUrl;
 
-    public UserResponse getUserById(Long userId) {
+    public UsuarioDTO getUserById(Long userId) {
         try {
-            log.debug("Llamando a User Service para obtener usuario con ID: {}", userId);
-
             return webClientBuilder.build()
                     .get()
-                    .uri(userServiceUrl + "/api/usuarios/{id}", userId)
+                    .uri(userServiceUrl + "/api/usuarios/" + userId)
                     .retrieve()
-                    .bodyToMono(UserResponse.class)
+                    .bodyToMono(UsuarioDTO.class)
+                    .timeout(Duration.ofSeconds(5))
+                    .onErrorResume(error -> {
+                        log.error("Error al obtener usuario {}: {}", userId, error.getMessage());
+                        return Mono.empty();
+                    })
                     .block();
-
-        } catch (WebClientResponseException.NotFound e) {
-            log.error("Usuario no encontrado con ID: {}", userId);
-            throw new ResourceNotFoundException("Usuario no encontrado con ID: " + userId);
         } catch (Exception e) {
-            log.error("Error al comunicarse con User Service: {}", e.getMessage());
-            throw new ServiceCommunicationException("Error al comunicarse con User Service", e);
+            log.error("Error crítico al comunicarse con User Service: {}", e.getMessage());
+            throw new MicroserviceException("No se pudo verificar el usuario. Intente nuevamente.");
         }
     }
 
-    public boolean validateUserExists(Long userId) {
+    public boolean existsUser(Long userId) {
         try {
-            getUserById(userId);
-            return true;
-        } catch (ResourceNotFoundException e) {
+            UsuarioDTO user = getUserById(userId);
+            return user != null && user.getId() != null;
+        } catch (Exception e) {
+            log.error("Error al verificar existencia del usuario {}: {}", userId, e.getMessage());
             return false;
         }
     }

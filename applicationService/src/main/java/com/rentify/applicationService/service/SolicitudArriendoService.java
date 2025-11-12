@@ -2,14 +2,16 @@ package com.rentify.applicationService.service;
 
 import com.rentify.applicationService.client.PropertyServiceClient;
 import com.rentify.applicationService.client.UserServiceClient;
+import com.rentify.applicationService.dto.PropiedadDTO;
 import com.rentify.applicationService.dto.SolicitudArriendoDTO;
-import com.rentify.applicationService.dto.external.PropertyResponse;
-import com.rentify.applicationService.dto.external.UserResponse;
+import com.rentify.applicationService.dto.UsuarioDTO;
+import com.rentify.applicationService.exception.BusinessValidationException;
 import com.rentify.applicationService.exception.ResourceNotFoundException;
 import com.rentify.applicationService.model.SolicitudArriendo;
 import com.rentify.applicationService.repository.SolicitudArriendoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,58 +27,63 @@ public class SolicitudArriendoService {
     private final SolicitudArriendoRepository repository;
     private final UserServiceClient userServiceClient;
     private final PropertyServiceClient propertyServiceClient;
+    private final ModelMapper modelMapper;
 
     @Transactional
-    public SolicitudArriendoDTO crearSolicitud(SolicitudArriendoDTO dto) {
-        log.info("Creando solicitud de arriendo para usuario {} y propiedad {}",
-                dto.getUsuarioId(), dto.getPropiedadId());
+    public SolicitudArriendoDTO crearSolicitud(SolicitudArriendoDTO solicitudDTO) {
+        log.info("Creando nueva solicitud para usuario {} y propiedad {}",
+                solicitudDTO.getUsuarioId(), solicitudDTO.getPropiedadId());
 
         // Validar que el usuario existe
-        userServiceClient.validateUserExists(dto.getUsuarioId());
+        if (!userServiceClient.existsUser(solicitudDTO.getUsuarioId())) {
+            throw new BusinessValidationException("El usuario con ID " + solicitudDTO.getUsuarioId() + " no existe");
+        }
 
         // Validar que la propiedad existe y está disponible
-        propertyServiceClient.validatePropertyAvailable(dto.getPropiedadId());
+        if (!propertyServiceClient.existsProperty(solicitudDTO.getPropiedadId())) {
+            throw new BusinessValidationException("La propiedad con ID " + solicitudDTO.getPropiedadId() + " no existe");
+        }
 
-        SolicitudArriendo solicitud = SolicitudArriendo.builder()
-                .usuarioId(dto.getUsuarioId())
-                .propiedadId(dto.getPropiedadId())
-                .estado("PENDIENTE")
-                .fechaSolicitud(new Date())
-                .build();
+        if (!propertyServiceClient.isPropertyAvailable(solicitudDTO.getPropiedadId())) {
+            throw new BusinessValidationException("La propiedad no está disponible para arriendo");
+        }
+
+        // Crear la solicitud
+        SolicitudArriendo solicitud = modelMapper.map(solicitudDTO, SolicitudArriendo.class);
+        solicitud.setEstado("PENDIENTE");
+        solicitud.setFechaSolicitud(new Date());
 
         SolicitudArriendo saved = repository.save(solicitud);
-        log.info("Solicitud creada exitosamente con ID: {}", saved.getId());
+        log.info("Solicitud creada con ID: {}", saved.getId());
 
-        return convertToDTO(saved);
+        return convertToDTO(saved, true);
     }
 
     @Transactional(readOnly = true)
-    public List<SolicitudArriendoDTO> listarTodas() {
+    public List<SolicitudArriendoDTO> listarTodas(boolean includeDetails) {
         return repository.findAll().stream()
-                .map(this::convertToDTO)
+                .map(s -> convertToDTO(s, includeDetails))
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public SolicitudArriendoDTO obtenerPorId(Long id) {
+    public SolicitudArriendoDTO obtenerPorId(Long id, boolean includeDetails) {
         SolicitudArriendo solicitud = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Solicitud no encontrada con ID: " + id));
-        return convertToDTO(solicitud);
+        return convertToDTO(solicitud, includeDetails);
     }
 
     @Transactional(readOnly = true)
-    public List<SolicitudArriendoDTO> listarPorUsuario(Long usuarioId) {
-        userServiceClient.validateUserExists(usuarioId);
+    public List<SolicitudArriendoDTO> obtenerPorUsuario(Long usuarioId) {
         return repository.findByUsuarioId(usuarioId).stream()
-                .map(this::convertToDTO)
+                .map(s -> convertToDTO(s, false))
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<SolicitudArriendoDTO> listarPorPropiedad(Long propiedadId) {
-        propertyServiceClient.validatePropertyExists(propiedadId);
+    public List<SolicitudArriendoDTO> obtenerPorPropiedad(Long propiedadId) {
         return repository.findByPropiedadId(propiedadId).stream()
-                .map(this::convertToDTO)
+                .map(s -> convertToDTO(s, false))
                 .collect(Collectors.toList());
     }
 
@@ -85,37 +92,41 @@ public class SolicitudArriendoService {
         SolicitudArriendo solicitud = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Solicitud no encontrada con ID: " + id));
 
-        solicitud.setEstado(nuevoEstado);
-        SolicitudArriendo updated = repository.save(solicitud);
-
-        log.info("Estado de solicitud {} actualizado a {}", id, nuevoEstado);
-        return convertToDTO(updated);
-    }
-
-    private SolicitudArriendoDTO convertToDTO(SolicitudArriendo solicitud) {
-        SolicitudArriendoDTO dto = SolicitudArriendoDTO.builder()
-                .id(solicitud.getId())
-                .usuarioId(solicitud.getUsuarioId())
-                .propiedadId(solicitud.getPropiedadId())
-                .estado(solicitud.getEstado())
-                .fechaSolicitud(solicitud.getFechaSolicitud())
-                .build();
-
-        // Enriquecer con datos de otros microservicios
-        try {
-            UserResponse user = userServiceClient.getUserById(solicitud.getUsuarioId());
-            dto.setNombreUsuario(user.getNombre());
-            dto.setEmailUsuario(user.getEmail());
-        } catch (Exception e) {
-            log.warn("No se pudo obtener información del usuario: {}", e.getMessage());
+        if (!isValidEstado(nuevoEstado)) {
+            throw new BusinessValidationException("Estado inválido: " + nuevoEstado);
         }
 
-        try {
-            PropertyResponse property = propertyServiceClient.getPropertyById(solicitud.getPropiedadId());
-            dto.setDireccionPropiedad(property.getDireccion());
-            dto.setPrecioPropiedad(property.getPrecioArriendo());
-        } catch (Exception e) {
-            log.warn("No se pudo obtener información de la propiedad: {}", e.getMessage());
+        solicitud.setEstado(nuevoEstado.toUpperCase());
+        SolicitudArriendo updated = repository.save(solicitud);
+        log.info("Estado de solicitud {} actualizado a: {}", id, nuevoEstado);
+
+        return convertToDTO(updated, true);
+    }
+
+    private boolean isValidEstado(String estado) {
+        return estado != null &&
+                (estado.equalsIgnoreCase("PENDIENTE") ||
+                        estado.equalsIgnoreCase("ACEPTADA") ||
+                        estado.equalsIgnoreCase("RECHAZADA"));
+    }
+
+    private SolicitudArriendoDTO convertToDTO(SolicitudArriendo solicitud, boolean includeDetails) {
+        SolicitudArriendoDTO dto = modelMapper.map(solicitud, SolicitudArriendoDTO.class);
+
+        if (includeDetails) {
+            try {
+                UsuarioDTO usuario = userServiceClient.getUserById(solicitud.getUsuarioId());
+                dto.setUsuario(usuario);
+            } catch (Exception e) {
+                log.warn("No se pudo obtener información del usuario {}", solicitud.getUsuarioId());
+            }
+
+            try {
+                PropiedadDTO propiedad = propertyServiceClient.getPropertyById(solicitud.getPropiedadId());
+                dto.setPropiedad(propiedad);
+            } catch (Exception e) {
+                log.warn("No se pudo obtener información de la propiedad {}", solicitud.getPropiedadId());
+            }
         }
 
         return dto;
