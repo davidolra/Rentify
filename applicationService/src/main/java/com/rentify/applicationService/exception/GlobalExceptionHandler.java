@@ -84,16 +84,3 @@ public class GlobalExceptionHandler {
     }
 }
 
-// Clase para la respuesta de error
-@lombok.Getter
-@lombok.Setter
-@lombok.Builder
-@lombok.NoArgsConstructor
-@lombok.AllArgsConstructor
-class ErrorResponse {
-    private LocalDateTime timestamp;
-    private int status;
-    private String error;
-    private String message;
-    private Map<String, String> validationErrors;
-}

@@ -17,6 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.rentify.applicationService.constants.ApplicationConstants.*;
+
+/**
+ * Servicio para gestión de registros de arriendos activos
+ * Implementa toda la lógica de negocio relacionada con registros
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -27,96 +33,135 @@ public class RegistroArriendoService {
     private final SolicitudArriendoService solicitudService;
     private final ModelMapper modelMapper;
 
+    /**
+     * Crea un nuevo registro de arriendo con todas las validaciones
+     */
     @Transactional
     public RegistroArriendoDTO crearRegistro(RegistroArriendoDTO registroDTO) {
         log.info("Creando nuevo registro para solicitud {}", registroDTO.getSolicitudId());
 
-        // Validar que la solicitud existe
+        // 1. Validar que la solicitud existe
         SolicitudArriendo solicitud = solicitudRepository.findById(registroDTO.getSolicitudId())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Solicitud no encontrada con ID: " + registroDTO.getSolicitudId()));
+                        String.format(Mensajes.SOLICITUD_NO_ENCONTRADA, registroDTO.getSolicitudId())
+                ));
 
-        // Validar que la solicitud está ACEPTADA
-        if (!"ACEPTADA".equals(solicitud.getEstado())) {
+        // 2. Validar que la solicitud está ACEPTADA
+        if (!EstadoSolicitud.ACEPTADA.equals(solicitud.getEstado())) {
+            log.warn("Intento de crear registro para solicitud {} con estado {}",
+                    solicitud.getId(), solicitud.getEstado());
             throw new BusinessValidationException(
-                    "Solo se pueden crear registros para solicitudes aceptadas. Estado actual: " + solicitud.getEstado());
+                    String.format(Mensajes.REGISTRO_SOLO_ACEPTADA, solicitud.getEstado())
+            );
         }
 
-        // Validar que no existe ya un registro activo para esta solicitud
+        // 3. Validar que no existe ya un registro activo para esta solicitud
         List<RegistroArriendo> registrosActivos = repository.findBySolicitudId(registroDTO.getSolicitudId())
                 .stream()
                 .filter(RegistroArriendo::getActivo)
                 .toList();
 
         if (!registrosActivos.isEmpty()) {
-            throw new BusinessValidationException(
-                    "Ya existe un registro activo para esta solicitud");
+            log.warn("Ya existe registro activo para solicitud {}", solicitud.getId());
+            throw new BusinessValidationException(Mensajes.REGISTRO_YA_EXISTE);
         }
 
-        // Validar fechas
+        // 4. Validar fechas si se proporciona fecha de fin
         if (registroDTO.getFechaFin() != null &&
                 registroDTO.getFechaInicio().after(registroDTO.getFechaFin())) {
-            throw new BusinessValidationException(
-                    "La fecha de inicio no puede ser posterior a la fecha de fin");
+            log.warn("Fechas inválidas: inicio {} después de fin {}",
+                    registroDTO.getFechaInicio(), registroDTO.getFechaFin());
+            throw new BusinessValidationException(Mensajes.FECHAS_INVALIDAS);
         }
 
+        // 5. Crear el registro
         RegistroArriendo registro = modelMapper.map(registroDTO, RegistroArriendo.class);
         registro.setActivo(true);
 
         RegistroArriendo saved = repository.save(registro);
-        log.info("Registro creado con ID: {}", saved.getId());
+        log.info("Registro creado exitosamente con ID: {}", saved.getId());
 
         return convertToDTO(saved, true);
     }
 
+    /**
+     * Lista todos los registros con opción de incluir detalles
+     */
     @Transactional(readOnly = true)
     public List<RegistroArriendoDTO> listarTodos(boolean includeDetails) {
+        log.debug("Listando todos los registros (includeDetails: {})", includeDetails);
         return repository.findAll().stream()
                 .map(r -> convertToDTO(r, includeDetails))
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Obtiene un registro por su ID
+     */
     @Transactional(readOnly = true)
     public RegistroArriendoDTO obtenerPorId(Long id, boolean includeDetails) {
+        log.debug("Obteniendo registro con ID: {}", id);
         RegistroArriendo registro = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Registro no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        String.format(Mensajes.REGISTRO_NO_ENCONTRADO, id)
+                ));
         return convertToDTO(registro, includeDetails);
     }
 
+    /**
+     * Obtiene todos los registros de una solicitud
+     */
     @Transactional(readOnly = true)
     public List<RegistroArriendoDTO> obtenerPorSolicitud(Long solicitudId) {
+        log.debug("Obteniendo registros de la solicitud: {}", solicitudId);
         return repository.findBySolicitudId(solicitudId).stream()
                 .map(r -> convertToDTO(r, false))
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Finaliza un registro marcándolo como inactivo
+     */
     @Transactional
     public RegistroArriendoDTO finalizarRegistro(Long id) {
+        log.info("Finalizando registro {}", id);
+
         RegistroArriendo registro = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Registro no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        String.format(Mensajes.REGISTRO_NO_ENCONTRADO, id)
+                ));
 
         if (!registro.getActivo()) {
-            throw new BusinessValidationException("El registro ya está inactivo");
+            log.warn("Intento de finalizar registro {} que ya está inactivo", id);
+            throw new BusinessValidationException(Mensajes.REGISTRO_YA_INACTIVO);
         }
 
         registro.setActivo(false);
         registro.setFechaFin(new java.util.Date());
 
         RegistroArriendo updated = repository.save(registro);
-        log.info("Registro {} finalizado", id);
+        log.info("Registro {} finalizado exitosamente", id);
 
         return convertToDTO(updated, true);
     }
 
+    /**
+     * Convierte una entidad RegistroArriendo a DTO
+     * Opcionalmente incluye información detallada de la solicitud
+     */
     private RegistroArriendoDTO convertToDTO(RegistroArriendo registro, boolean includeDetails) {
         RegistroArriendoDTO dto = modelMapper.map(registro, RegistroArriendoDTO.class);
 
         if (includeDetails) {
             try {
-                SolicitudArriendoDTO solicitud = solicitudService.obtenerPorId(registro.getSolicitudId(), true);
+                SolicitudArriendoDTO solicitud = solicitudService.obtenerPorId(
+                        registro.getSolicitudId(),
+                        true
+                );
                 dto.setSolicitud(solicitud);
             } catch (Exception e) {
-                log.warn("No se pudo obtener información de la solicitud {}", registro.getSolicitudId());
+                log.warn("No se pudo obtener información de la solicitud {}: {}",
+                        registro.getSolicitudId(), e.getMessage());
             }
         }
 
