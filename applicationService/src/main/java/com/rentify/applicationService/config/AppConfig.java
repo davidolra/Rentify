@@ -7,6 +7,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springdoc.core.models.GroupedOpenApi;
 
 @Configuration
 public class AppConfig {
@@ -31,5 +32,14 @@ public class AppConfig {
                         .contact(new Contact()
                                 .name("Rentify Team")
                                 .email("support@rentify.com")));
+    }
+
+    // Asegura que Swagger esté disponible
+    @Bean
+    public GroupedOpenApi publicApi() {
+        return GroupedOpenApi.builder()
+                .group("public")
+                .pathsToMatch("/api/**")
+                .build();
     }
 }
