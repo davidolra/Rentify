@@ -1,5 +1,6 @@
 package com.rentify.applicationService.service;
 
+import com.rentify.applicationService.client.DocumentServiceClient;
 import com.rentify.applicationService.client.PropertyServiceClient;
 import com.rentify.applicationService.client.UserServiceClient;
 import com.rentify.applicationService.dto.PropiedadDTO;
@@ -27,8 +28,12 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Tests unitarios para SolicitudArriendoService
+ * Valida toda la lógica de negocio del servicio
+ */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Tests para SolicitudArriendoService")
+@DisplayName("Tests de SolicitudArriendoService")
 class SolicitudArriendoServiceTest {
 
     @Mock
@@ -41,213 +46,276 @@ class SolicitudArriendoServiceTest {
     private PropertyServiceClient propertyServiceClient;
 
     @Mock
+    private DocumentServiceClient documentServiceClient;
+
+    @Mock
     private ModelMapper modelMapper;
 
     @InjectMocks
     private SolicitudArriendoService service;
 
+    private UsuarioDTO usuarioValido;
+    private PropiedadDTO propiedadValida;
     private SolicitudArriendoDTO solicitudDTO;
-    private SolicitudArriendo solicitud;
-    private UsuarioDTO usuarioDTO;
-    private PropiedadDTO propiedadDTO;
+    private SolicitudArriendo solicitudEntity;
 
     @BeforeEach
     void setUp() {
-        // Preparar datos de prueba
+        // Usuario válido con rol ARRIENDATARIO
+        usuarioValido = new UsuarioDTO();
+        usuarioValido.setId(1L);
+        usuarioValido.setNombre("Juan Pérez");
+        usuarioValido.setEmail("juan@email.com");
+        usuarioValido.setRol("ARRIENDATARIO");
+        usuarioValido.setEstado("ACTIVO");
+
+        // Propiedad válida y disponible
+        propiedadValida = new PropiedadDTO();
+        propiedadValida.setId(1L);
+        propiedadValida.setTitulo("Depto 2D/1B");
+        propiedadValida.setPrecio(500000.0);
+        propiedadValida.setDisponible(true);
+
+        // DTO de solicitud
         solicitudDTO = SolicitudArriendoDTO.builder()
                 .usuarioId(1L)
                 .propiedadId(1L)
                 .build();
 
-        solicitud = SolicitudArriendo.builder()
-                .id(1L)
-                .usuarioId(1L)
-                .propiedadId(1L)
-                .estado("PENDIENTE")
-                .fechaSolicitud(new Date())
-                .build();
-
-        usuarioDTO = new UsuarioDTO(1L, "Juan Pérez", "juan@example.com", "123456789");
-        propiedadDTO = new PropiedadDTO(1L, "Casa en Santiago", "Av. Principal 123", 500000.0, "Casa", true);
+        // Entidad de solicitud
+        solicitudEntity = new SolicitudArriendo();
+        solicitudEntity.setId(1L);
+        solicitudEntity.setUsuarioId(1L);
+        solicitudEntity.setPropiedadId(1L);
+        solicitudEntity.setEstado("PENDIENTE");
+        solicitudEntity.setFechaSolicitud(new Date());
     }
 
     @Test
-    @DisplayName("Crear solicitud exitosamente")
-    void crearSolicitud_DeberiaCrearSolicitudExitosamente() {
-        // Given
-        when(userServiceClient.existsUser(1L)).thenReturn(true);
+    @DisplayName("Debe crear solicitud exitosamente cuando todos los datos son válidos")
+    void crearSolicitud_DatosValidos_Success() {
+        // Arrange
+        when(userServiceClient.getUserById(1L)).thenReturn(usuarioValido);
+        when(repository.countByUsuarioIdAndEstado(1L, "PENDIENTE")).thenReturn(0L);
+        when(repository.existsByUsuarioIdAndPropiedadIdAndEstado(1L, 1L, "PENDIENTE")).thenReturn(false);
         when(propertyServiceClient.existsProperty(1L)).thenReturn(true);
         when(propertyServiceClient.isPropertyAvailable(1L)).thenReturn(true);
-        when(modelMapper.map(solicitudDTO, SolicitudArriendo.class)).thenReturn(solicitud);
-        when(repository.save(any(SolicitudArriendo.class))).thenReturn(solicitud);
-        when(modelMapper.map(solicitud, SolicitudArriendoDTO.class)).thenReturn(solicitudDTO);
-        when(userServiceClient.getUserById(1L)).thenReturn(usuarioDTO);
-        when(propertyServiceClient.getPropertyById(1L)).thenReturn(propiedadDTO);
-
-        // When
-        SolicitudArriendoDTO result = service.crearSolicitud(solicitudDTO);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getUsuarioId()).isEqualTo(1L);
-        assertThat(result.getPropiedadId()).isEqualTo(1L);
-
-        verify(userServiceClient, times(1)).existsUser(1L);
-        verify(propertyServiceClient, times(1)).existsProperty(1L);
-        verify(propertyServiceClient, times(1)).isPropertyAvailable(1L);
-        verify(repository, times(1)).save(any(SolicitudArriendo.class));
-    }
-
-    @Test
-    @DisplayName("Crear solicitud - Usuario no existe")
-    void crearSolicitud_UsuarioNoExiste_DeberiaLanzarExcepcion() {
-        // Given
-        when(userServiceClient.existsUser(1L)).thenReturn(false);
-
-        // When & Then
-        assertThatThrownBy(() -> service.crearSolicitud(solicitudDTO))
-                .isInstanceOf(BusinessValidationException.class)
-                .hasMessageContaining("El usuario con ID 1 no existe");
-
-        verify(repository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("Crear solicitud - Propiedad no existe")
-    void crearSolicitud_PropiedadNoExiste_DeberiaLanzarExcepcion() {
-        // Given
-        when(userServiceClient.existsUser(1L)).thenReturn(true);
-        when(propertyServiceClient.existsProperty(1L)).thenReturn(false);
-
-        // When & Then
-        assertThatThrownBy(() -> service.crearSolicitud(solicitudDTO))
-                .isInstanceOf(BusinessValidationException.class)
-                .hasMessageContaining("La propiedad con ID 1 no existe");
-
-        verify(repository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("Crear solicitud - Propiedad no disponible")
-    void crearSolicitud_PropiedadNoDisponible_DeberiaLanzarExcepcion() {
-        // Given
-        when(userServiceClient.existsUser(1L)).thenReturn(true);
-        when(propertyServiceClient.existsProperty(1L)).thenReturn(true);
-        when(propertyServiceClient.isPropertyAvailable(1L)).thenReturn(false);
-
-        // When & Then
-        assertThatThrownBy(() -> service.crearSolicitud(solicitudDTO))
-                .isInstanceOf(BusinessValidationException.class)
-                .hasMessageContaining("La propiedad no está disponible");
-
-        verify(repository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("Listar todas las solicitudes")
-    void listarTodas_DeberiaRetornarListaDeSolicitudes() {
-        // Given
-        List<SolicitudArriendo> solicitudes = Arrays.asList(solicitud);
-        when(repository.findAll()).thenReturn(solicitudes);
+        when(documentServiceClient.hasApprovedDocuments(1L)).thenReturn(true);
+        when(modelMapper.map(any(SolicitudArriendoDTO.class), eq(SolicitudArriendo.class)))
+                .thenReturn(solicitudEntity);
+        when(repository.save(any(SolicitudArriendo.class))).thenReturn(solicitudEntity);
         when(modelMapper.map(any(SolicitudArriendo.class), eq(SolicitudArriendoDTO.class)))
                 .thenReturn(solicitudDTO);
 
-        // When
-        List<SolicitudArriendoDTO> result = service.listarTodas(false);
+        // Act
+        SolicitudArriendoDTO resultado = service.crearSolicitud(solicitudDTO);
 
-        // Then
-        assertThat(result).hasSize(1);
+        // Assert
+        assertThat(resultado).isNotNull();
+        verify(repository, times(1)).save(any(SolicitudArriendo.class));
+        verify(userServiceClient, times(2)).getUserById(1L); // 1 para validación + 1 para detalles
+    }
+
+    @Test
+    @DisplayName("Debe lanzar excepción cuando el usuario no existe")
+    void crearSolicitud_UsuarioNoExiste_ThrowsException() {
+        // Arrange
+        when(userServiceClient.getUserById(1L)).thenReturn(null);
+
+        // Act & Assert
+        assertThatThrownBy(() -> service.crearSolicitud(solicitudDTO))
+                .isInstanceOf(BusinessValidationException.class)
+                .hasMessageContaining("usuario con ID 1 no existe");
+
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Debe lanzar excepción cuando el usuario no tiene rol ARRIENDATARIO")
+    void crearSolicitud_RolInvalido_ThrowsException() {
+        // Arrange
+        usuarioValido.setRol("PROPIETARIO");
+        when(userServiceClient.getUserById(1L)).thenReturn(usuarioValido);
+
+        // Act & Assert
+        assertThatThrownBy(() -> service.crearSolicitud(solicitudDTO))
+                .isInstanceOf(BusinessValidationException.class)
+                .hasMessageContaining("Solo usuarios con rol ARRIENDATARIO");
+
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Debe lanzar excepción cuando el usuario tiene 3 solicitudes activas")
+    void crearSolicitud_MaxSolicitudesActivas_ThrowsException() {
+        // Arrange
+        when(userServiceClient.getUserById(1L)).thenReturn(usuarioValido);
+        when(repository.countByUsuarioIdAndEstado(1L, "PENDIENTE")).thenReturn(3L);
+
+        // Act & Assert
+        assertThatThrownBy(() -> service.crearSolicitud(solicitudDTO))
+                .isInstanceOf(BusinessValidationException.class)
+                .hasMessageContaining("máximo permitido de solicitudes activas");
+
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Debe lanzar excepción cuando ya existe solicitud pendiente para la propiedad")
+    void crearSolicitud_SolicitudDuplicada_ThrowsException() {
+        // Arrange
+        when(userServiceClient.getUserById(1L)).thenReturn(usuarioValido);
+        when(repository.countByUsuarioIdAndEstado(1L, "PENDIENTE")).thenReturn(0L);
+        when(repository.existsByUsuarioIdAndPropiedadIdAndEstado(1L, 1L, "PENDIENTE")).thenReturn(true);
+
+        // Act & Assert
+        assertThatThrownBy(() -> service.crearSolicitud(solicitudDTO))
+                .isInstanceOf(BusinessValidationException.class)
+                .hasMessageContaining("Ya existe una solicitud pendiente");
+
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Debe lanzar excepción cuando la propiedad no existe")
+    void crearSolicitud_PropiedadNoExiste_ThrowsException() {
+        // Arrange
+        when(userServiceClient.getUserById(1L)).thenReturn(usuarioValido);
+        when(repository.countByUsuarioIdAndEstado(1L, "PENDIENTE")).thenReturn(0L);
+        when(repository.existsByUsuarioIdAndPropiedadIdAndEstado(1L, 1L, "PENDIENTE")).thenReturn(false);
+        when(propertyServiceClient.existsProperty(1L)).thenReturn(false);
+
+        // Act & Assert
+        assertThatThrownBy(() -> service.crearSolicitud(solicitudDTO))
+                .isInstanceOf(BusinessValidationException.class)
+                .hasMessageContaining("propiedad con ID 1 no existe");
+
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Debe lanzar excepción cuando la propiedad no está disponible")
+    void crearSolicitud_PropiedadNoDisponible_ThrowsException() {
+        // Arrange
+        when(userServiceClient.getUserById(1L)).thenReturn(usuarioValido);
+        when(repository.countByUsuarioIdAndEstado(1L, "PENDIENTE")).thenReturn(0L);
+        when(repository.existsByUsuarioIdAndPropiedadIdAndEstado(1L, 1L, "PENDIENTE")).thenReturn(false);
+        when(propertyServiceClient.existsProperty(1L)).thenReturn(true);
+        when(propertyServiceClient.isPropertyAvailable(1L)).thenReturn(false);
+
+        // Act & Assert
+        assertThatThrownBy(() -> service.crearSolicitud(solicitudDTO))
+                .isInstanceOf(BusinessValidationException.class)
+                .hasMessageContaining("no está disponible");
+
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Debe lanzar excepción cuando el usuario no tiene documentos aprobados")
+    void crearSolicitud_SinDocumentosAprobados_ThrowsException() {
+        // Arrange
+        when(userServiceClient.getUserById(1L)).thenReturn(usuarioValido);
+        when(repository.countByUsuarioIdAndEstado(1L, "PENDIENTE")).thenReturn(0L);
+        when(repository.existsByUsuarioIdAndPropiedadIdAndEstado(1L, 1L, "PENDIENTE")).thenReturn(false);
+        when(propertyServiceClient.existsProperty(1L)).thenReturn(true);
+        when(propertyServiceClient.isPropertyAvailable(1L)).thenReturn(true);
+        when(documentServiceClient.hasApprovedDocuments(1L)).thenReturn(false);
+
+        // Act & Assert
+        assertThatThrownBy(() -> service.crearSolicitud(solicitudDTO))
+                .isInstanceOf(BusinessValidationException.class)
+                .hasMessageContaining("documentos aprobados");
+
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Debe listar todas las solicitudes")
+    void listarTodas_RetornaListado() {
+        // Arrange
+        SolicitudArriendo solicitud2 = new SolicitudArriendo();
+        solicitud2.setId(2L);
+        when(repository.findAll()).thenReturn(Arrays.asList(solicitudEntity, solicitud2));
+        when(modelMapper.map(any(SolicitudArriendo.class), eq(SolicitudArriendoDTO.class)))
+                .thenReturn(solicitudDTO);
+
+        // Act
+        List<SolicitudArriendoDTO> resultado = service.listarTodas(false);
+
+        // Assert
+        assertThat(resultado).hasSize(2);
         verify(repository, times(1)).findAll();
     }
 
     @Test
-    @DisplayName("Obtener solicitud por ID - Exitoso")
-    void obtenerPorId_SolicitudExiste_DeberiaRetornarSolicitud() {
-        // Given
-        when(repository.findById(1L)).thenReturn(Optional.of(solicitud));
-        when(modelMapper.map(solicitud, SolicitudArriendoDTO.class)).thenReturn(solicitudDTO);
-        when(userServiceClient.getUserById(1L)).thenReturn(usuarioDTO);
-        when(propertyServiceClient.getPropertyById(1L)).thenReturn(propiedadDTO);
+    @DisplayName("Debe obtener solicitud por ID")
+    void obtenerPorId_SolicitudExiste_RetornaSolicitud() {
+        // Arrange
+        when(repository.findById(1L)).thenReturn(Optional.of(solicitudEntity));
+        when(modelMapper.map(any(SolicitudArriendo.class), eq(SolicitudArriendoDTO.class)))
+                .thenReturn(solicitudDTO);
 
-        // When
-        SolicitudArriendoDTO result = service.obtenerPorId(1L, true);
+        // Act
+        SolicitudArriendoDTO resultado = service.obtenerPorId(1L, false);
 
-        // Then
-        assertThat(result).isNotNull();
+        // Assert
+        assertThat(resultado).isNotNull();
         verify(repository, times(1)).findById(1L);
     }
 
     @Test
-    @DisplayName("Obtener solicitud por ID - No existe")
-    void obtenerPorId_SolicitudNoExiste_DeberiaLanzarExcepcion() {
-        // Given
+    @DisplayName("Debe lanzar excepción cuando solicitud no existe")
+    void obtenerPorId_SolicitudNoExiste_ThrowsException() {
+        // Arrange
         when(repository.findById(1L)).thenReturn(Optional.empty());
 
-        // When & Then
+        // Act & Assert
         assertThatThrownBy(() -> service.obtenerPorId(1L, false))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Solicitud no encontrada con ID: 1");
     }
 
     @Test
-    @DisplayName("Obtener solicitudes por usuario")
-    void obtenerPorUsuario_DeberiaRetornarSolicitudesDelUsuario() {
-        // Given
-        List<SolicitudArriendo> solicitudes = Arrays.asList(solicitud);
-        when(repository.findByUsuarioId(1L)).thenReturn(solicitudes);
+    @DisplayName("Debe obtener solicitudes por usuario")
+    void obtenerPorUsuario_RetornaListado() {
+        // Arrange
+        when(repository.findByUsuarioId(1L)).thenReturn(Arrays.asList(solicitudEntity));
         when(modelMapper.map(any(SolicitudArriendo.class), eq(SolicitudArriendoDTO.class)))
                 .thenReturn(solicitudDTO);
 
-        // When
-        List<SolicitudArriendoDTO> result = service.obtenerPorUsuario(1L);
+        // Act
+        List<SolicitudArriendoDTO> resultado = service.obtenerPorUsuario(1L);
 
-        // Then
-        assertThat(result).hasSize(1);
+        // Assert
+        assertThat(resultado).hasSize(1);
         verify(repository, times(1)).findByUsuarioId(1L);
     }
 
     @Test
-    @DisplayName("Obtener solicitudes por propiedad")
-    void obtenerPorPropiedad_DeberiaRetornarSolicitudesDeLaPropiedad() {
-        // Given
-        List<SolicitudArriendo> solicitudes = Arrays.asList(solicitud);
-        when(repository.findByPropiedadId(1L)).thenReturn(solicitudes);
+    @DisplayName("Debe actualizar estado de solicitud")
+    void actualizarEstado_EstadoValido_Success() {
+        // Arrange
+        when(repository.findById(1L)).thenReturn(Optional.of(solicitudEntity));
+        when(repository.save(any(SolicitudArriendo.class))).thenReturn(solicitudEntity);
         when(modelMapper.map(any(SolicitudArriendo.class), eq(SolicitudArriendoDTO.class)))
                 .thenReturn(solicitudDTO);
 
-        // When
-        List<SolicitudArriendoDTO> result = service.obtenerPorPropiedad(1L);
+        // Act
+        SolicitudArriendoDTO resultado = service.actualizarEstado(1L, "ACEPTADA");
 
-        // Then
-        assertThat(result).hasSize(1);
-        verify(repository, times(1)).findByPropiedadId(1L);
-    }
-
-    @Test
-    @DisplayName("Actualizar estado - Exitoso")
-    void actualizarEstado_EstadoValido_DeberiaActualizarEstado() {
-        // Given
-        when(repository.findById(1L)).thenReturn(Optional.of(solicitud));
-        when(repository.save(any(SolicitudArriendo.class))).thenReturn(solicitud);
-        when(modelMapper.map(solicitud, SolicitudArriendoDTO.class)).thenReturn(solicitudDTO);
-        when(userServiceClient.getUserById(1L)).thenReturn(usuarioDTO);
-        when(propertyServiceClient.getPropertyById(1L)).thenReturn(propiedadDTO);
-
-        // When
-        SolicitudArriendoDTO result = service.actualizarEstado(1L, "ACEPTADA");
-
-        // Then
-        assertThat(result).isNotNull();
+        // Assert
+        assertThat(resultado).isNotNull();
         verify(repository, times(1)).save(any(SolicitudArriendo.class));
     }
 
     @Test
-    @DisplayName("Actualizar estado - Estado inválido")
-    void actualizarEstado_EstadoInvalido_DeberiaLanzarExcepcion() {
-        // Given
-        when(repository.findById(1L)).thenReturn(Optional.of(solicitud));
+    @DisplayName("Debe lanzar excepción cuando estado es inválido")
+    void actualizarEstado_EstadoInvalido_ThrowsException() {
+        // Arrange
+        when(repository.findById(1L)).thenReturn(Optional.of(solicitudEntity));
 
-        // When & Then
+        // Act & Assert
         assertThatThrownBy(() -> service.actualizarEstado(1L, "INVALIDO"))
                 .isInstanceOf(BusinessValidationException.class)
                 .hasMessageContaining("Estado inválido");
@@ -256,15 +324,27 @@ class SolicitudArriendoServiceTest {
     }
 
     @Test
-    @DisplayName("Actualizar estado - Solicitud no existe")
-    void actualizarEstado_SolicitudNoExiste_DeberiaLanzarExcepcion() {
-        // Given
-        when(repository.findById(1L)).thenReturn(Optional.empty());
+    @DisplayName("Debe permitir crear solicitud a usuario ADMIN")
+    void crearSolicitud_UsuarioAdmin_Success() {
+        // Arrange
+        usuarioValido.setRol("ADMIN");
+        when(userServiceClient.getUserById(1L)).thenReturn(usuarioValido);
+        when(repository.countByUsuarioIdAndEstado(1L, "PENDIENTE")).thenReturn(0L);
+        when(repository.existsByUsuarioIdAndPropiedadIdAndEstado(1L, 1L, "PENDIENTE")).thenReturn(false);
+        when(propertyServiceClient.existsProperty(1L)).thenReturn(true);
+        when(propertyServiceClient.isPropertyAvailable(1L)).thenReturn(true);
+        when(documentServiceClient.hasApprovedDocuments(1L)).thenReturn(true);
+        when(modelMapper.map(any(SolicitudArriendoDTO.class), eq(SolicitudArriendo.class)))
+                .thenReturn(solicitudEntity);
+        when(repository.save(any(SolicitudArriendo.class))).thenReturn(solicitudEntity);
+        when(modelMapper.map(any(SolicitudArriendo.class), eq(SolicitudArriendoDTO.class)))
+                .thenReturn(solicitudDTO);
 
-        // When & Then
-        assertThatThrownBy(() -> service.actualizarEstado(1L, "ACEPTADA"))
-                .isInstanceOf(ResourceNotFoundException.class);
+        // Act
+        SolicitudArriendoDTO resultado = service.crearSolicitud(solicitudDTO);
 
-        verify(repository, never()).save(any());
+        // Assert
+        assertThat(resultado).isNotNull();
+        verify(repository, times(1)).save(any(SolicitudArriendo.class));
     }
 }
