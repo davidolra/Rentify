@@ -7,10 +7,6 @@ import lombok.*;
 
 import java.util.Date;
 
-/**
- * DTO para gestión de solicitudes de arriendo
- * Representa una solicitud de un usuario para arrendar una propiedad
- */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,12 +20,12 @@ public class SolicitudArriendoDTO {
 
     @NotNull(message = "El ID del usuario es obligatorio")
     @Positive(message = "El ID del usuario debe ser un número positivo")
-    @Schema(description = "ID del usuario que solicita el arriendo", example = "1", required = true)
+    @Schema(description = "ID del usuario que solicita el arriendo", example = "1")  // SIN required
     private Long usuarioId;
 
     @NotNull(message = "El ID de la propiedad es obligatorio")
     @Positive(message = "El ID de la propiedad debe ser un número positivo")
-    @Schema(description = "ID de la propiedad solicitada", example = "1", required = true)
+    @Schema(description = "ID de la propiedad solicitada", example = "1")  // SIN required
     private Long propiedadId;
 
     @Schema(description = "Estado de la solicitud (PENDIENTE, ACEPTADA, RECHAZADA)",

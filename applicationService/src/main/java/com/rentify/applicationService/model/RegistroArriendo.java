@@ -45,7 +45,7 @@ public class RegistroArriendo {
     @PrePersist
     protected void onCreate() {
         if (activo == null) {
-            activo = true;
+            activo = Boolean.TRUE;  // CORREGIDO: usar Boolean.TRUE en lugar de true
         }
     }
 }

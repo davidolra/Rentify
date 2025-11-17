@@ -76,7 +76,7 @@ public class RegistroArriendoService {
 
         // 5. Crear el registro
         RegistroArriendo registro = modelMapper.map(registroDTO, RegistroArriendo.class);
-        registro.setActivo(true);
+        registro.setActivo(Boolean.TRUE);  // CORREGIDO
 
         RegistroArriendo saved = repository.save(registro);
         log.info("Registro creado exitosamente con ID: {}", saved.getId());
@@ -89,7 +89,7 @@ public class RegistroArriendoService {
      */
     @Transactional(readOnly = true)
     public List<RegistroArriendoDTO> listarTodos(boolean includeDetails) {
-        log.debug("Listando todos los registros (includeDetails: {})", includeDetails);
+        log.debug("Listando todos los registros (includeDetails: {})", Boolean.valueOf(includeDetails));  // CORREGIDO
         return repository.findAll().stream()
                 .map(r -> convertToDTO(r, includeDetails))
                 .collect(Collectors.toList());
@@ -136,7 +136,7 @@ public class RegistroArriendoService {
             throw new BusinessValidationException(Mensajes.REGISTRO_YA_INACTIVO);
         }
 
-        registro.setActivo(false);
+        registro.setActivo(Boolean.FALSE);  // CORREGIDO
         registro.setFechaFin(new java.util.Date());
 
         RegistroArriendo updated = repository.save(registro);
@@ -156,7 +156,7 @@ public class RegistroArriendoService {
             try {
                 SolicitudArriendoDTO solicitud = solicitudService.obtenerPorId(
                         registro.getSolicitudId(),
-                        true
+                        true  // Aquí es OK porque el parámetro es primitivo boolean
                 );
                 dto.setSolicitud(solicitud);
             } catch (Exception e) {

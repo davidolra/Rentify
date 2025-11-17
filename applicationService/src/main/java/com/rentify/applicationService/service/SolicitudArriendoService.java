@@ -68,9 +68,9 @@ public class SolicitudArriendoService {
 
         if (solicitudesActivas >= Limites.MAX_SOLICITUDES_ACTIVAS) {
             log.warn("Usuario {} alcanzó el límite de solicitudes activas: {}",
-                    usuario.getId(), solicitudesActivas);
+                    usuario.getId(), Long.valueOf(solicitudesActivas));  // CORREGIDO
             throw new BusinessValidationException(
-                    String.format(Mensajes.MAX_SOLICITUDES_ALCANZADO, Limites.MAX_SOLICITUDES_ACTIVAS)
+                    String.format(Mensajes.MAX_SOLICITUDES_ALCANZADO, Integer.valueOf(Limites.MAX_SOLICITUDES_ACTIVAS))  // CORREGIDO
             );
         }
 
@@ -123,7 +123,7 @@ public class SolicitudArriendoService {
      */
     @Transactional(readOnly = true)
     public List<SolicitudArriendoDTO> listarTodas(boolean includeDetails) {
-        log.debug("Listando todas las solicitudes (includeDetails: {})", includeDetails);
+        log.debug("Listando todas las solicitudes (includeDetails: {})", Boolean.valueOf(includeDetails));  // CORREGIDO
         return repository.findAll().stream()
                 .map(s -> convertToDTO(s, includeDetails))
                 .collect(Collectors.toList());

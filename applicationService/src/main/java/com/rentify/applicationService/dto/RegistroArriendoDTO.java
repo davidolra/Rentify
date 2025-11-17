@@ -7,10 +7,6 @@ import lombok.*;
 
 import java.util.Date;
 
-/**
- * DTO para gestión de registros de arriendos activos
- * Representa un arriendo confirmado y en curso
- */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,15 +20,14 @@ public class RegistroArriendoDTO {
 
     @NotNull(message = "El ID de la solicitud es obligatorio")
     @Positive(message = "El ID de la solicitud debe ser un número positivo")
-    @Schema(description = "ID de la solicitud asociada", example = "1", required = true)
+    @Schema(description = "ID de la solicitud asociada", example = "1")  // SIN required
     private Long solicitudId;
 
     @NotNull(message = "La fecha de inicio es obligatoria")
     @Schema(description = "Fecha de inicio del arriendo",
             example = "2025-12-01",
-            required = true,
             type = "string",
-            format = "date")
+            format = "date")  // SIN required
     private Date fechaInicio;
 
     @Schema(description = "Fecha de finalización del arriendo (opcional al crear)",
@@ -44,8 +39,7 @@ public class RegistroArriendoDTO {
     @NotNull(message = "El monto mensual es obligatorio")
     @Positive(message = "El monto debe ser mayor a 0")
     @Schema(description = "Monto mensual del arriendo en CLP",
-            example = "500000.00",
-            required = true)
+            example = "500000.00")  // SIN required
     private Double montoMensual;
 
     @Schema(description = "Indica si el registro está activo",

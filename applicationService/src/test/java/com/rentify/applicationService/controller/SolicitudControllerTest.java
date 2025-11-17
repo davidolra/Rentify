@@ -10,7 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;  // CAMBIADO
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -18,7 +18,7 @@ import java.util.Arrays;
 import java.util.Date;
 
 import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;  // SOLO MOCKITO
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -37,7 +37,7 @@ class SolicitudControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @MockitoBean  // CAMBIADO de @MockBean
     private SolicitudArriendoService service;
 
     private SolicitudArriendoDTO solicitudDTO;
@@ -84,7 +84,7 @@ class SolicitudControllerTest {
                         .content(objectMapper.writeValueAsString(solicitudDTO)))
                 .andExpect(status().isBadRequest());
 
-        verify(service, never()).crearSolicitud(any());
+        verify(service, never()).crearSolicitud(any(SolicitudArriendoDTO.class));
     }
 
     @Test

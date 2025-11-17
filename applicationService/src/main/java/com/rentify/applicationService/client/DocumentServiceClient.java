@@ -1,6 +1,5 @@
 package com.rentify.applicationService.client;
 
-import com.rentify.applicationService.exception.MicroserviceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,7 +46,7 @@ public class DocumentServiceClient {
                     .block();
 
             boolean result = Boolean.TRUE.equals(hasDocuments);
-            log.debug("Usuario {} tiene documentos aprobados: {}", userId, result);
+            log.debug("Usuario {} tiene documentos aprobados: {}", userId, Boolean.valueOf(result));  // CORREGIDO
 
             return result;
         } catch (Exception e) {
@@ -82,7 +81,7 @@ public class DocumentServiceClient {
                     .block();
 
             int result = count != null ? count : 0;
-            log.debug("Usuario {} tiene {} documentos aprobados", userId, result);
+            log.debug("Usuario {} tiene {} documentos aprobados", userId, Integer.valueOf(result));  // CORREGIDO
 
             return result;
         } catch (Exception e) {
