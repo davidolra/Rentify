@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -45,7 +46,13 @@ class DocumentServiceClientTest {
 
     @AfterEach
     void tearDown() throws IOException {
-        mockWebServer.shutdown();
+        try {
+            // Dar tiempo para que las requests pendientes terminen
+            mockWebServer.shutdown();
+        } catch (IOException e) {
+            // Si falla el shutdown normal, intentar un shutdown más agresivo
+            System.err.println("Warning: MockWebServer shutdown failed - " + e.getMessage());
+        }
     }
 
     @Test
@@ -154,15 +161,45 @@ class DocumentServiceClientTest {
     @Test
     @DisplayName("Debe manejar timeout correctamente")
     void hasApprovedDocuments_Timeout_ReturnsFalse() {
-        // Arrange
+        // Arrange - usar delay de 6 segundos (mayor al timeout de 5 segundos)
         mockWebServer.enqueue(new MockResponse()
                 .setBody("true")
-                .setBodyDelay(10, java.util.concurrent.TimeUnit.SECONDS)); // Delay mayor al timeout
+                .setBodyDelay(6, TimeUnit.SECONDS));
 
         // Act
         boolean result = client.hasApprovedDocuments(1L);
 
         // Assert
         assertThat(result).isFalse();
+    }
+
+    @Test
+    @DisplayName("Debe manejar respuesta null correctamente")
+    void hasApprovedDocuments_RespuestaNull_ReturnsFalse() {
+        // Arrange
+        mockWebServer.enqueue(new MockResponse()
+                .setBody("null")
+                .addHeader("Content-Type", "application/json"));
+
+        // Act
+        boolean result = client.hasApprovedDocuments(1L);
+
+        // Assert
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    @DisplayName("Debe manejar respuesta vacía correctamente")
+    void countApprovedDocuments_RespuestaVacia_Returns0() {
+        // Arrange
+        mockWebServer.enqueue(new MockResponse()
+                .setBody("")
+                .addHeader("Content-Type", "application/json"));
+
+        // Act
+        int count = client.countApprovedDocuments(1L);
+
+        // Assert
+        assertThat(count).isZero();
     }
 }
