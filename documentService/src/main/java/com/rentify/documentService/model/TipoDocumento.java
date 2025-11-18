@@ -5,23 +5,23 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 /**
- * Entidad que representa un estado de documento.
- * Ejemplos: PENDIENTE, ACEPTADO, RECHAZADO, EN_REVISION
+ * Entidad que representa un tipo de documento.
+ * Ejemplos: DNI, PASAPORTE, LIQUIDACION_SUELDO, CERTIFICADO_ANTECEDENTES
  */
 @Entity
-@Table(name = "estado")
+@Table(name = "tipo_doc")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Estado {
+public class TipoDocumento {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "El nombre del estado es obligatorio")
-    @Column(name = "nombre", nullable = false, length = 20)
+    @NotNull(message = "El nombre del tipo de documento es obligatorio")
+    @Column(name = "nombre", nullable = false, length = 60)
     private String nombre;
 }
