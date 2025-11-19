@@ -1,8 +1,13 @@
 package com.rentify.reviewService.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
+/**
+ * Entidad que representa un tipo de reseña en el sistema.
+ * Ejemplos: "Reseña de Propiedad", "Reseña de Usuario", etc.
+ */
 @Entity
 @Table(name = "tipo_resena")
 @Getter
@@ -16,6 +21,7 @@ public class TipoResena {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 60)
-    private String nombre; // Ej: "Reseña de Propiedad", "Reseña de Usuario"
+    @NotBlank(message = "El nombre del tipo de reseña es obligatorio")
+    @Column(nullable = false, length = 60, unique = true)
+    private String nombre;
 }

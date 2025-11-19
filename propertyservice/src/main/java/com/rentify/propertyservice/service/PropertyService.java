@@ -1,7 +1,7 @@
 package com.rentify.propertyservice.service;
 
 import com.rentify.propertyservice.constants.PropertyConstants;
-import com.rentify.propertyservice.dto.PropertyDTO;
+import com.rentify.propertyservice.dto.*;
 import com.rentify.propertyservice.exception.BusinessValidationException;
 import com.rentify.propertyservice.exception.ResourceNotFoundException;
 import com.rentify.propertyservice.model.*;
@@ -123,7 +123,15 @@ public class PropertyService {
     }
 
     /**
-     * Lista todas las propiedades.
+     * Lista todas las propiedades con valor por defecto sin detalles.
+     */
+    @Transactional(readOnly = true)
+    public List<PropertyDTO> listarTodas() {
+        return listarTodas(false);
+    }
+
+    /**
+     * Lista todas las propiedades con opción de incluir detalles.
      */
     @Transactional(readOnly = true)
     public List<PropertyDTO> listarTodas(boolean includeDetails) {
@@ -135,11 +143,19 @@ public class PropertyService {
     }
 
     /**
-     * Obtiene una propiedad por ID.
+     * Obtiene una propiedad por ID con valor por defecto sin detalles.
+     */
+    @Transactional(readOnly = true)
+    public PropertyDTO obtenerPorId(Long id) {
+        return obtenerPorId(id, false);
+    }
+
+    /**
+     * Obtiene una propiedad por ID con opción de incluir detalles.
      */
     @Transactional(readOnly = true)
     public PropertyDTO obtenerPorId(Long id, boolean includeDetails) {
-        log.debug("Obteniendo propiedad con ID: {}", id);
+        log.debug("Obteniendo propiedad con ID: {} (includeDetails: {})", id, Boolean.valueOf(includeDetails));
 
         Property property = propertyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -150,11 +166,19 @@ public class PropertyService {
     }
 
     /**
-     * Obtiene una propiedad por código.
+     * Obtiene una propiedad por código con valor por defecto sin detalles.
+     */
+    @Transactional(readOnly = true)
+    public PropertyDTO obtenerPorCodigo(String codigo) {
+        return obtenerPorCodigo(codigo, false);
+    }
+
+    /**
+     * Obtiene una propiedad por código con opción de incluir detalles.
      */
     @Transactional(readOnly = true)
     public PropertyDTO obtenerPorCodigo(String codigo, boolean includeDetails) {
-        log.debug("Obteniendo propiedad con código: {}", codigo);
+        log.debug("Obteniendo propiedad con código: {} (includeDetails: {})", codigo, Boolean.valueOf(includeDetails));
 
         Property property = propertyRepository.findByCodigo(codigo)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -294,15 +318,54 @@ public class PropertyService {
     }
 
     /**
-     * Convierte una entidad Property a DTO.
+     * Convierte una entidad Property a DTO con mapeo completo de relaciones.
      */
     private PropertyDTO convertToDTO(Property property, boolean includeDetails) {
-        PropertyDTO dto = modelMapper.map(property, PropertyDTO.class);
+        PropertyDTO dto = new PropertyDTO();
+
+        // Mapear campos básicos
+        dto.setId(property.getId());
+        dto.setCodigo(property.getCodigo());
+        dto.setTitulo(property.getTitulo());
+        dto.setPrecioMensual(property.getPrecioMensual());
+        dto.setDivisa(property.getDivisa());
+        dto.setM2(property.getM2());
+        dto.setNHabit(property.getNHabit());
+        dto.setNBanos(property.getNBanos());
+        dto.setPetFriendly(property.getPetFriendly());
+        dto.setDireccion(property.getDireccion());
+        dto.setFcreacion(property.getFcreacion());
+
+        // Mapear IDs de relaciones
+        dto.setTipoId(property.getTipo().getId());
+        dto.setComunaId(property.getComuna().getId());
 
         if (includeDetails) {
-            // Incluir detalles de tipo y comuna
-            dto.setTipoId(property.getTipo().getId());
-            dto.setComunaId(property.getComuna().getId());
+            // Mapear Tipo
+            TipoDTO tipoDTO = modelMapper.map(property.getTipo(), TipoDTO.class);
+            dto.setTipo(tipoDTO);
+
+            // Mapear Comuna con su Región
+            ComunaDTO comunaDTO = new ComunaDTO();
+            comunaDTO.setId(property.getComuna().getId());
+            comunaDTO.setNombre(property.getComuna().getNombre());
+            comunaDTO.setRegionId(property.getComuna().getRegion().getId());
+
+            RegionDTO regionDTO = modelMapper.map(property.getComuna().getRegion(), RegionDTO.class);
+            comunaDTO.setRegion(regionDTO);
+            dto.setComuna(comunaDTO);
+
+            // Mapear Fotos
+            List<FotoDTO> fotosDTO = property.getFotos().stream()
+                    .map(f -> modelMapper.map(f, FotoDTO.class))
+                    .collect(Collectors.toList());
+            dto.setFotos(fotosDTO);
+
+            // Mapear Categorías
+            List<CategoriaDTO> categoriasDTO = property.getCategorias().stream()
+                    .map(c -> modelMapper.map(c, CategoriaDTO.class))
+                    .collect(Collectors.toList());
+            dto.setCategorias(categoriasDTO);
         }
 
         return dto;

@@ -52,13 +52,17 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
 
     /**
      * Busca propiedades por número de habitaciones.
+     * ✅ USAR @Query EXPLÍCITA para evitar problemas con Spring Data JPA
      */
-    List<Property> findByNHabit(Integer nHabit);
+    @Query("SELECT p FROM Property p WHERE p.nHabit = :nHabit")
+    List<Property> findByNHabit(@Param("nHabit") Integer nHabit);
 
     /**
      * Busca propiedades por número de baños.
+     * ✅ USAR @Query EXPLÍCITA para evitar problemas con Spring Data JPA
      */
-    List<Property> findByNBanos(Integer nBanos);
+    @Query("SELECT p FROM Property p WHERE p.nBanos = :nBanos")
+    List<Property> findByNBanos(@Param("nBanos") Integer nBanos);
 
     /**
      * Busca propiedades con filtros combinados.

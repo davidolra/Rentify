@@ -2,6 +2,7 @@ package com.rentify.propertyservice.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -35,6 +36,7 @@ public class FotoDTO {
     @Schema(description = "Orden de visualización de la foto", example = "1")
     private Integer sortOrder;
 
+    @NotNull(message = "El ID de la propiedad es obligatorio")
     @Positive(message = "El ID de la propiedad debe ser un número positivo")
     @Schema(description = "ID de la propiedad asociada", example = "1")
     private Long propiedadId;
