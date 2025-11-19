@@ -54,6 +54,7 @@ public class Usuario {
     @Column(name = "ntelefono", nullable = false, length = 12)
     private String ntelefono;
 
+    @Builder.Default
     @Column(name = "duoc_vip", nullable = false)
     private Boolean duocVip = false;
 
@@ -62,6 +63,7 @@ public class Usuario {
     @Column(nullable = false, length = 100)
     private String clave;
 
+    @Builder.Default
     @Column(nullable = false)
     private Integer puntos = 0;
 
