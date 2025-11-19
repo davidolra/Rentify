@@ -1,65 +1,310 @@
 package com.rentify.propertyservice.service;
 
-import com.rentify.propertyservice.dto.PropertyRequest;
+import com.rentify.propertyservice.constants.PropertyConstants;
+import com.rentify.propertyservice.dto.PropertyDTO;
+import com.rentify.propertyservice.exception.BusinessValidationException;
+import com.rentify.propertyservice.exception.ResourceNotFoundException;
 import com.rentify.propertyservice.model.*;
 import com.rentify.propertyservice.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
+/**
+ * Servicio para gestión de propiedades.
+ * Implementa la lógica de negocio para CRUD y operaciones avanzadas.
+ */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PropertyService {
 
     private final PropertyRepository propertyRepository;
     private final TipoRepository tipoRepository;
     private final ComunaRepository comunaRepository;
+    private final CategoriaRepository categoriaRepository;
+    private final ModelMapper modelMapper;
 
-    public Property crearProperty(PropertyRequest req) {
-        Tipo tipo = tipoRepository.findById(req.getTipoId())
-                .orElseThrow(() -> new IllegalArgumentException("Tipo no encontrado"));
-        Comuna comuna = comunaRepository.findById(req.getComunaId())
-                .orElseThrow(() -> new IllegalArgumentException("Comuna no encontrada"));
+    /**
+     * Crea una nueva propiedad con validaciones de negocio.
+     */
+    @Transactional
+    public PropertyDTO crearProperty(PropertyDTO propertyDTO) {
+        log.info("Creando nueva propiedad con código: {}", propertyDTO.getCodigo());
 
-        Property p = Property.builder()
-                .codigo(req.getCodigo())
-                .titulo(req.getTitulo())
-                .precioMensual(req.getPrecioMensual())
-                .divisa(req.getDivisa())
-                .m2(req.getM2())
-                .nHabit(req.getNHabit())
-                .nBanos(req.getNBanos())
-                .petFriendly(req.getPetFriendly() != null ? req.getPetFriendly() : false)
-                .direccion(req.getDireccion())
-                .fcreacion(req.getFcreacion() != null ? req.getFcreacion() : LocalDate.now())
+        // 1. Validar código único
+        if (propertyRepository.existsByCodigo(propertyDTO.getCodigo())) {
+            throw new BusinessValidationException(
+                    String.format(PropertyConstants.Mensajes.CODIGO_DUPLICADO, propertyDTO.getCodigo())
+            );
+        }
+
+        // 2. Validar divisa
+        if (!PropertyConstants.Divisas.esValida(propertyDTO.getDivisa())) {
+            throw new BusinessValidationException(
+                    String.format(PropertyConstants.Mensajes.DIVISA_INVALIDA, propertyDTO.getDivisa())
+            );
+        }
+
+        // 3. Validar precio
+        if (propertyDTO.getPrecioMensual().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessValidationException(PropertyConstants.Mensajes.PRECIO_INVALIDO);
+        }
+
+        // 4. Validar metros cuadrados
+        if (propertyDTO.getM2().compareTo(BigDecimal.valueOf(PropertyConstants.Limites.MIN_M2)) < 0 ||
+                propertyDTO.getM2().compareTo(BigDecimal.valueOf(PropertyConstants.Limites.MAX_M2)) > 0) {
+            throw new BusinessValidationException(
+                    String.format(PropertyConstants.Mensajes.M2_INVALIDO,
+                            PropertyConstants.Limites.MIN_M2,
+                            PropertyConstants.Limites.MAX_M2)
+            );
+        }
+
+        // 5. Validar habitaciones
+        if (propertyDTO.getNHabit() < PropertyConstants.Limites.MIN_HABITACIONES ||
+                propertyDTO.getNHabit() > PropertyConstants.Limites.MAX_HABITACIONES) {
+            throw new BusinessValidationException(
+                    String.format(PropertyConstants.Mensajes.HABITACIONES_INVALIDAS,
+                            PropertyConstants.Limites.MIN_HABITACIONES,
+                            PropertyConstants.Limites.MAX_HABITACIONES)
+            );
+        }
+
+        // 6. Validar baños
+        if (propertyDTO.getNBanos() < PropertyConstants.Limites.MIN_BANOS ||
+                propertyDTO.getNBanos() > PropertyConstants.Limites.MAX_BANOS) {
+            throw new BusinessValidationException(
+                    String.format(PropertyConstants.Mensajes.BANOS_INVALIDOS,
+                            PropertyConstants.Limites.MIN_BANOS,
+                            PropertyConstants.Limites.MAX_BANOS)
+            );
+        }
+
+        // 7. Validar que el tipo existe
+        Tipo tipo = tipoRepository.findById(propertyDTO.getTipoId())
+                .orElseThrow(() -> new BusinessValidationException(
+                        String.format(PropertyConstants.Mensajes.TIPO_NO_ENCONTRADO, propertyDTO.getTipoId())
+                ));
+
+        // 8. Validar que la comuna existe
+        Comuna comuna = comunaRepository.findById(propertyDTO.getComunaId())
+                .orElseThrow(() -> new BusinessValidationException(
+                        String.format(PropertyConstants.Mensajes.COMUNA_NO_ENCONTRADA, propertyDTO.getComunaId())
+                ));
+
+        // 9. Crear y guardar la propiedad
+        Property property = Property.builder()
+                .codigo(propertyDTO.getCodigo())
+                .titulo(propertyDTO.getTitulo())
+                .precioMensual(propertyDTO.getPrecioMensual())
+                .divisa(propertyDTO.getDivisa().toUpperCase())
+                .m2(propertyDTO.getM2())
+                .nHabit(propertyDTO.getNHabit())
+                .nBanos(propertyDTO.getNBanos())
+                .petFriendly(propertyDTO.getPetFriendly() != null ? propertyDTO.getPetFriendly() : false)
+                .direccion(propertyDTO.getDireccion())
+                .fcreacion(propertyDTO.getFcreacion() != null ? propertyDTO.getFcreacion() : LocalDate.now())
                 .tipo(tipo)
                 .comuna(comuna)
                 .build();
 
-        return propertyRepository.save(p);
+        Property saved = propertyRepository.save(property);
+        log.info("Propiedad creada exitosamente con ID: {}", saved.getId());
+
+        return convertToDTO(saved, true);
     }
 
-    public List<Property> listarTodas() {
-        return propertyRepository.findAll();
+    /**
+     * Lista todas las propiedades.
+     */
+    @Transactional(readOnly = true)
+    public List<PropertyDTO> listarTodas(boolean includeDetails) {
+        log.debug("Listando todas las propiedades (includeDetails: {})", Boolean.valueOf(includeDetails));
+
+        return propertyRepository.findAll().stream()
+                .map(p -> convertToDTO(p, includeDetails))
+                .collect(Collectors.toList());
     }
 
-    public Optional<Property> obtenerPorId(Long id) {
-        return propertyRepository.findById(id);
+    /**
+     * Obtiene una propiedad por ID.
+     */
+    @Transactional(readOnly = true)
+    public PropertyDTO obtenerPorId(Long id, boolean includeDetails) {
+        log.debug("Obteniendo propiedad con ID: {}", id);
+
+        Property property = propertyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        String.format(PropertyConstants.Mensajes.PROPIEDAD_NO_ENCONTRADA, id)
+                ));
+
+        return convertToDTO(property, includeDetails);
     }
 
-    public Property actualizar(Long id, PropertyRequest req) {
-        Property p = propertyRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Propiedad no encontrada"));
+    /**
+     * Obtiene una propiedad por código.
+     */
+    @Transactional(readOnly = true)
+    public PropertyDTO obtenerPorCodigo(String codigo, boolean includeDetails) {
+        log.debug("Obteniendo propiedad con código: {}", codigo);
 
-        if (req.getTitulo() != null) p.setTitulo(req.getTitulo());
-        if (req.getPrecioMensual() != null) p.setPrecioMensual(req.getPrecioMensual());
-        // ... setear otras propiedades similares
-        return propertyRepository.save(p);
+        Property property = propertyRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "La propiedad con código " + codigo + " no existe"
+                ));
+
+        return convertToDTO(property, includeDetails);
     }
 
+    /**
+     * Actualiza una propiedad existente.
+     */
+    @Transactional
+    public PropertyDTO actualizar(Long id, PropertyDTO propertyDTO) {
+        log.info("Actualizando propiedad con ID: {}", id);
+
+        Property property = propertyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        String.format(PropertyConstants.Mensajes.PROPIEDAD_NO_ENCONTRADA, id)
+                ));
+
+        // Validar código único si se está cambiando
+        if (propertyDTO.getCodigo() != null &&
+                !propertyDTO.getCodigo().equals(property.getCodigo()) &&
+                propertyRepository.existsByCodigo(propertyDTO.getCodigo())) {
+            throw new BusinessValidationException(
+                    String.format(PropertyConstants.Mensajes.CODIGO_DUPLICADO, propertyDTO.getCodigo())
+            );
+        }
+
+        // Actualizar campos
+        if (propertyDTO.getCodigo() != null) {
+            property.setCodigo(propertyDTO.getCodigo());
+        }
+        if (propertyDTO.getTitulo() != null) {
+            property.setTitulo(propertyDTO.getTitulo());
+        }
+        if (propertyDTO.getPrecioMensual() != null) {
+            if (propertyDTO.getPrecioMensual().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new BusinessValidationException(PropertyConstants.Mensajes.PRECIO_INVALIDO);
+            }
+            property.setPrecioMensual(propertyDTO.getPrecioMensual());
+        }
+        if (propertyDTO.getDivisa() != null) {
+            if (!PropertyConstants.Divisas.esValida(propertyDTO.getDivisa())) {
+                throw new BusinessValidationException(
+                        String.format(PropertyConstants.Mensajes.DIVISA_INVALIDA, propertyDTO.getDivisa())
+                );
+            }
+            property.setDivisa(propertyDTO.getDivisa().toUpperCase());
+        }
+        if (propertyDTO.getM2() != null) {
+            property.setM2(propertyDTO.getM2());
+        }
+        if (propertyDTO.getNHabit() != null) {
+            property.setNHabit(propertyDTO.getNHabit());
+        }
+        if (propertyDTO.getNBanos() != null) {
+            property.setNBanos(propertyDTO.getNBanos());
+        }
+        if (propertyDTO.getPetFriendly() != null) {
+            property.setPetFriendly(propertyDTO.getPetFriendly());
+        }
+        if (propertyDTO.getDireccion() != null) {
+            property.setDireccion(propertyDTO.getDireccion());
+        }
+        if (propertyDTO.getTipoId() != null) {
+            Tipo tipo = tipoRepository.findById(propertyDTO.getTipoId())
+                    .orElseThrow(() -> new BusinessValidationException(
+                            String.format(PropertyConstants.Mensajes.TIPO_NO_ENCONTRADO, propertyDTO.getTipoId())
+                    ));
+            property.setTipo(tipo);
+        }
+        if (propertyDTO.getComunaId() != null) {
+            Comuna comuna = comunaRepository.findById(propertyDTO.getComunaId())
+                    .orElseThrow(() -> new BusinessValidationException(
+                            String.format(PropertyConstants.Mensajes.COMUNA_NO_ENCONTRADA, propertyDTO.getComunaId())
+                    ));
+            property.setComuna(comuna);
+        }
+
+        Property updated = propertyRepository.save(property);
+        log.info("Propiedad actualizada exitosamente con ID: {}", updated.getId());
+
+        return convertToDTO(updated, true);
+    }
+
+    /**
+     * Elimina una propiedad.
+     */
+    @Transactional
     public void eliminar(Long id) {
+        log.info("Eliminando propiedad con ID: {}", id);
+
+        if (!propertyRepository.existsById(id)) {
+            throw new ResourceNotFoundException(
+                    String.format(PropertyConstants.Mensajes.PROPIEDAD_NO_ENCONTRADA, id)
+            );
+        }
+
         propertyRepository.deleteById(id);
+        log.info("Propiedad eliminada exitosamente con ID: {}", id);
+    }
+
+    /**
+     * Busca propiedades con filtros opcionales.
+     */
+    @Transactional(readOnly = true)
+    public List<PropertyDTO> buscarConFiltros(
+            Long comunaId,
+            Long tipoId,
+            BigDecimal minPrecio,
+            BigDecimal maxPrecio,
+            Integer nHabit,
+            Integer nBanos,
+            Boolean petFriendly,
+            boolean includeDetails) {
+
+        log.debug("Buscando propiedades con filtros - comuna: {}, tipo: {}, minPrecio: {}, maxPrecio: {}",
+                comunaId, tipoId, minPrecio, maxPrecio);
+
+        List<Property> properties = propertyRepository.findByFilters(
+                comunaId, tipoId, minPrecio, maxPrecio, nHabit, nBanos, petFriendly
+        );
+
+        return properties.stream()
+                .map(p -> convertToDTO(p, includeDetails))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Verifica si existe una propiedad.
+     */
+    @Transactional(readOnly = true)
+    public boolean existsProperty(Long id) {
+        return propertyRepository.existsById(id);
+    }
+
+    /**
+     * Convierte una entidad Property a DTO.
+     */
+    private PropertyDTO convertToDTO(Property property, boolean includeDetails) {
+        PropertyDTO dto = modelMapper.map(property, PropertyDTO.class);
+
+        if (includeDetails) {
+            // Incluir detalles de tipo y comuna
+            dto.setTipoId(property.getTipo().getId());
+            dto.setComunaId(property.getComuna().getId());
+        }
+
+        return dto;
     }
 }

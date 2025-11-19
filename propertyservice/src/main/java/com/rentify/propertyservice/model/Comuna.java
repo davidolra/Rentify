@@ -1,23 +1,32 @@
 package com.rentify.propertyservice.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+/**
+ * Entidad que representa una Comuna.
+ */
 @Entity
 @Table(name = "comuna")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Comuna {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 60)
+    @NotBlank(message = "El nombre es obligatorio")
+    @Column(name = "nombre", length = 60, nullable = false)
     private String nombre;
 
-    @ManyToOne
-    @JoinColumn(name = "region_id")
+    @NotNull(message = "La región es obligatoria")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "region_id", nullable = false)
     private Region region;
 }

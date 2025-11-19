@@ -1,11 +1,16 @@
 package com.rentify.propertyservice.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
+/**
+ * Entidad que representa una Foto de una propiedad.
+ */
 @Entity
 @Table(name = "fotos")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -15,16 +20,25 @@ public class Foto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(length = 60, nullable = false)
+    @NotBlank(message = "El nombre es obligatorio")
+    @Column(name = "nombre", length = 60, nullable = false)
     private String nombre;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @NotBlank(message = "La URL es obligatoria")
+    @Column(name = "url", nullable = false, columnDefinition = "TEXT")
     private String url;
 
     @Column(name = "sort_order")
     private Integer sortOrder;
 
-    @ManyToOne
-    @JoinColumn(name = "propiedad_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "propiedad_id", nullable = false)
     private Property property;
+
+    @PrePersist
+    protected void onCreate() {
+        if (sortOrder == null) {
+            sortOrder = 0;
+        }
+    }
 }

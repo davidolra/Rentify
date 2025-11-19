@@ -1,6 +1,5 @@
 package com.rentify.propertyservice.controller;
 
-import com.rentify.propertyservice.dto.PropertyRequest;
 import com.rentify.propertyservice.model.Property;
 import com.rentify.propertyservice.service.PropertyService;
 import lombok.RequiredArgsConstructor;
