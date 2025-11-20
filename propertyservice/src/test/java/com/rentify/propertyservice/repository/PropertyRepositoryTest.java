@@ -218,9 +218,12 @@ class PropertyRepositoryTest {
     @DisplayName("findByPrecioRange - Debería encontrar propiedades en rango de precio")
     void findByPrecioRange_DeberiaRetornarPropiedades() {
         // When
+        // ✅ CORREGIDO: Ajustar el rango de precio para incluir ambas propiedades
+        // property1: 650000, property2: 450000
+        // Rango: 400000 - 700000 incluye ambas
         List<Property> propiedades = propertyRepository.findByPrecioRange(
                 BigDecimal.valueOf(400000),
-                BigDecimal.valueOf(600000)
+                BigDecimal.valueOf(700000)
         );
 
         // Then

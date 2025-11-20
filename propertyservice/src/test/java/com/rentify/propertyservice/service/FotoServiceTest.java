@@ -21,9 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
@@ -144,9 +141,10 @@ class FotoServiceTest {
         when(multipartFile.getSize()).thenReturn(15 * 1024 * 1024L);
 
         // Act & Assert
+        // ✅ CORREGIDO: Cambiar "demasiado grande" por el mensaje real del servicio
         assertThatThrownBy(() -> fotoService.guardarFoto(1L, multipartFile))
                 .isInstanceOf(FileStorageException.class)
-                .hasMessageContaining("demasiado grande");
+                .hasMessageContaining("tamaño máximo");
 
         verify(fotoRepository, never()).save(any());
     }

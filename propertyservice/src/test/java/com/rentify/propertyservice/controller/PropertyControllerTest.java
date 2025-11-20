@@ -216,9 +216,19 @@ class PropertyControllerTest {
     @DisplayName("PUT /api/propiedades/{id} - Debe actualizar propiedad y retornar 200")
     void actualizar_DatosValidos_Returns200() throws Exception {
         // Arrange
+        // ✅ CORREGIDO: Incluir todos los campos obligatorios en el updateDTO
         PropertyDTO updateDTO = PropertyDTO.builder()
+                .codigo("DP001")
                 .titulo("Dpto Actualizado")
                 .precioMensual(BigDecimal.valueOf(700000))
+                .divisa("CLP")
+                .m2(BigDecimal.valueOf(65.5))
+                .nHabit(2)
+                .nBanos(2)
+                .petFriendly(true)
+                .direccion("Av. Providencia 1234")
+                .tipoId(1L)
+                .comunaId(1L)
                 .build();
 
         when(propertyService.actualizar(eq(1L), any(PropertyDTO.class)))
