@@ -12,7 +12,7 @@
         </processorPath>
         <module name="userservice" />
       </profile>
-      <profile name="Annotation profile for reviewService" enabled="true">
+      <profile name="Annotation profile for contactService" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -23,12 +23,14 @@
         <module name="applicationService" />
         <module name="reviewService" />
         <module name="propertyservice" />
+        <module name="contactService" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="applicationService" options="-parameters" />
+      <module name="contactService" options="-parameters" />
       <module name="documentService" options="-parameters" />
       <module name="propertyservice" options="-parameters" />
       <module name="reviewService" options="-parameters" />
