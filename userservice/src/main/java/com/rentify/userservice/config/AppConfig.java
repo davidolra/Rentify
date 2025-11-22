@@ -1,5 +1,7 @@
 package com.rentify.userservice.config;
 
+import com.rentify.userservice.dto.UsuarioDTO;
+import com.rentify.userservice.model.Usuario;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
@@ -18,10 +20,21 @@ public class AppConfig {
 
     /**
      * Bean de ModelMapper para convertir entre DTOs y Entidades
+     * Configurado para ignorar campos opcionales en DTOs
      */
     @Bean
     public ModelMapper modelMapper() {
-        return new ModelMapper();
+        ModelMapper mapper = new ModelMapper();
+        mapper.getConfiguration()
+                .setSkipNullEnabled(true)
+                .setAmbiguityIgnored(true);
+
+        // Configurar mapeo de UsuarioDTO a Usuario
+        // Ignorar los campos 'rol' y 'estado' porque usamos 'rolId' y 'estadoId'
+        mapper.typeMap(UsuarioDTO.class, Usuario.class)
+                .addMappings(mapping -> mapping.skip(Usuario::setId));
+
+        return mapper;
     }
 
     /**

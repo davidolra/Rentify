@@ -76,7 +76,6 @@ public class Usuario {
     @Column(name = "factualizacion", nullable = false)
     private LocalDate factualizacion;
 
-    @NotNull(message = "El estado es obligatorio")
     @Column(name = "estado_id", nullable = false)
     private Long estadoId;
 
