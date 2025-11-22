@@ -68,11 +68,13 @@ public class UsuarioService {
         boolean isDuocEmail = usuarioDTO.getEmail().toLowerCase().endsWith(Validaciones.DOMINIO_DUOC);
         usuarioDTO.setDuocVip(isDuocEmail);
 
+
+
         // 6. Establecer valores por defecto
         usuarioDTO.setPuntos(Validaciones.PUNTOS_INICIALES);
         usuarioDTO.setFcreacion(LocalDate.now());
         usuarioDTO.setFactualizacion(LocalDate.now());
-        usuarioDTO.setEstadoId(Estados.ACTIVO); // Por defecto ACTIVO
+        usuarioDTO.setEstadoId(1L); // Estado ACTIVO (ID 1) - hardcoded por ahora
 
         // 7. Si no tiene rol asignado, asignar ARRIENDATARIO por defecto
         if (usuarioDTO.getRolId() == null) {
@@ -83,7 +85,23 @@ public class UsuarioService {
         rolService.obtenerPorId(usuarioDTO.getRolId());
 
         // 9. Guardar usuario
-        Usuario usuario = modelMapper.map(usuarioDTO, Usuario.class);
+        // Mapeo manual sin ModelMapper para evitar problemas
+        Usuario usuario = new Usuario();
+        usuario.setPnombre(usuarioDTO.getPnombre());
+        usuario.setSnombre(usuarioDTO.getSnombre());
+        usuario.setPapellido(usuarioDTO.getPapellido());
+        usuario.setFnacimiento(usuarioDTO.getFnacimiento());
+        usuario.setEmail(usuarioDTO.getEmail());
+        usuario.setRut(usuarioDTO.getRut());
+        usuario.setNtelefono(usuarioDTO.getNtelefono());
+        usuario.setClave(usuarioDTO.getClave());
+        usuario.setPuntos(usuarioDTO.getPuntos());
+        usuario.setDuocVip(usuarioDTO.getDuocVip());
+        usuario.setCodigoRef(usuarioDTO.getCodigoRef());
+        usuario.setFcreacion(usuarioDTO.getFcreacion());
+        usuario.setFactualizacion(usuarioDTO.getFactualizacion());
+        usuario.setEstadoId(usuarioDTO.getEstadoId()); // ← Esto es crítico
+        usuario.setRolId(usuarioDTO.getRolId());
         Usuario saved = usuarioRepository.save(usuario);
 
         log.info("Usuario registrado exitosamente con ID: {} - DUOC VIP: {}",

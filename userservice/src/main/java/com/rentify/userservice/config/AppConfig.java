@@ -1,11 +1,10 @@
 package com.rentify.userservice.config;
 
-import com.rentify.userservice.dto.UsuarioDTO;
-import com.rentify.userservice.model.Usuario;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -20,19 +19,16 @@ public class AppConfig {
 
     /**
      * Bean de ModelMapper para convertir entre DTOs y Entidades
-     * Configurado para ignorar campos opcionales en DTOs
      */
     @Bean
     public ModelMapper modelMapper() {
         ModelMapper mapper = new ModelMapper();
+
+        // Usar LOOSE para permitir mapeo flexible
         mapper.getConfiguration()
+                .setMatchingStrategy(MatchingStrategies.LOOSE)
                 .setSkipNullEnabled(true)
                 .setAmbiguityIgnored(true);
-
-        // Configurar mapeo de UsuarioDTO a Usuario
-        // Ignorar los campos 'rol' y 'estado' porque usamos 'rolId' y 'estadoId'
-        mapper.typeMap(UsuarioDTO.class, Usuario.class)
-                .addMappings(mapping -> mapping.skip(Usuario::setId));
 
         return mapper;
     }
