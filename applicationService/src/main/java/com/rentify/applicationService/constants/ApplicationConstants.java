@@ -28,21 +28,30 @@ public final class ApplicationConstants {
     }
 
     /**
-     * Roles de usuario en el sistema Rentify
+     * IDs de roles en el sistema Rentify
+     * Estos corresponden a los IDs en la tabla rol de User Service
      */
     public static final class Roles {
-        public static final String ADMIN = "ADMIN";
-        public static final String PROPIETARIO = "PROPIETARIO";
-        public static final String ARRIENDATARIO = "ARRIENDATARIO";
+        public static final Integer ADMIN = 1;           // rolId = 1
+        public static final Integer PROPIETARIO = 2;     // rolId = 2
+        public static final Integer ARRIENDATARIO = 3;   // rolId = 3
 
         private Roles() {}
 
-        public static boolean puedeCrearSolicitud(String rol) {
-            return ARRIENDATARIO.equals(rol) || ADMIN.equals(rol);
+        /**
+         * Verifica si un rol puede crear solicitudes de arriendo
+         * Solo ARRIENDATARIO y ADMIN pueden crear solicitudes
+         */
+        public static boolean puedeCrearSolicitud(Integer rolId) {
+            return ARRIENDATARIO.equals(rolId) || ADMIN.equals(rolId);
         }
 
-        public static boolean puedeAceptarSolicitud(String rol) {
-            return PROPIETARIO.equals(rol) || ADMIN.equals(rol);
+        /**
+         * Verifica si un rol puede aceptar solicitudes
+         * Solo PROPIETARIO y ADMIN pueden aceptar
+         */
+        public static boolean puedeAceptarSolicitud(Integer rolId) {
+            return PROPIETARIO.equals(rolId) || ADMIN.equals(rolId);
         }
     }
 

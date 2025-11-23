@@ -54,9 +54,9 @@ public class SolicitudArriendoService {
         }
 
         // 2. Validar que el usuario tenga rol ARRIENDATARIO o ADMIN
-        if (!Roles.puedeCrearSolicitud(usuario.getRol())) {
-            log.warn("Usuario {} con rol {} intentó crear solicitud",
-                    usuario.getId(), usuario.getRol());
+        if (!Roles.puedeCrearSolicitud(usuario.getRolId())) {
+            log.warn("Usuario {} con rolId {} intentó crear solicitud",
+                    usuario.getId(), usuario.getRolId());
             throw new BusinessValidationException(Mensajes.ROL_INVALIDO_SOLICITUD);
         }
 
@@ -68,9 +68,9 @@ public class SolicitudArriendoService {
 
         if (solicitudesActivas >= Limites.MAX_SOLICITUDES_ACTIVAS) {
             log.warn("Usuario {} alcanzó el límite de solicitudes activas: {}",
-                    usuario.getId(), Long.valueOf(solicitudesActivas));  // CORREGIDO
+                    usuario.getId(), Long.valueOf(solicitudesActivas));
             throw new BusinessValidationException(
-                    String.format(Mensajes.MAX_SOLICITUDES_ALCANZADO, Integer.valueOf(Limites.MAX_SOLICITUDES_ACTIVAS))  // CORREGIDO
+                    String.format(Mensajes.MAX_SOLICITUDES_ALCANZADO, Limites.MAX_SOLICITUDES_ACTIVAS)
             );
         }
 
@@ -123,7 +123,7 @@ public class SolicitudArriendoService {
      */
     @Transactional(readOnly = true)
     public List<SolicitudArriendoDTO> listarTodas(boolean includeDetails) {
-        log.debug("Listando todas las solicitudes (includeDetails: {})", Boolean.valueOf(includeDetails));  // CORREGIDO
+        log.debug("Listando todas las solicitudes (includeDetails: {})", Boolean.valueOf(includeDetails));
         return repository.findAll().stream()
                 .map(s -> convertToDTO(s, includeDetails))
                 .collect(Collectors.toList());

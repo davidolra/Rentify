@@ -23,19 +23,34 @@ public class UserServiceClient {
 
     public UsuarioDTO getUserById(Long userId) {
         try {
-            return webClientBuilder.build()
+            log.info("🔍 UserServiceClient: Intentando obtener usuario {} desde URL: {}/api/usuarios/{}",
+                    userId, userServiceUrl, userId);
+
+            UsuarioDTO usuario = webClientBuilder.build()
                     .get()
                     .uri(userServiceUrl + "/api/usuarios/" + userId)
                     .retrieve()
                     .bodyToMono(UsuarioDTO.class)
                     .timeout(Duration.ofSeconds(5))
                     .onErrorResume(error -> {
-                        log.error("Error al obtener usuario {}: {}", userId, error.getMessage());
+                        log.error(" Error HTTP al obtener usuario {}: {} - {}",
+                                userId, error.getClass().getSimpleName(), error.getMessage());
                         return Mono.empty();
                     })
                     .block();
+
+            if (usuario != null) {
+                log.info("✅ Usuario {} encontrado: ID={}, RolId={}, Email={}",
+                        userId, usuario.getId(), usuario.getRolId(), usuario.getEmail());
+            } else {
+                log.warn(" UserServiceClient retornó NULL para usuario {}", userId);
+            }
+
+            return usuario;
         } catch (Exception e) {
-            log.error("Error crítico al comunicarse con User Service: {}", e.getMessage());
+            log.error(" Error crítico al comunicarse con User Service: {} - {}",
+                    e.getClass().getSimpleName(), e.getMessage());
+            e.printStackTrace();
             throw new MicroserviceException("No se pudo verificar el usuario. Intente nuevamente.");
         }
     }
