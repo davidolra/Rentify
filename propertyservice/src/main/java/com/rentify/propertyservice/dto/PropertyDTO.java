@@ -1,5 +1,7 @@
 package com.rentify.propertyservice.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
@@ -10,6 +12,11 @@ import java.util.List;
 
 /**
  * DTO para operaciones con Propiedades
+ *
+ * SOLUCIONES APLICADAS:
+ * ✅ int primitivo para nHabit y nBanos (evita problemas de deserialización con 0)
+ * ✅ @JsonProperty + @JsonAlias para serialización/deserialización correcta
+ * ✅ @JsonFormat para LocalDate (serializa como "yyyy-MM-dd" en lugar de array)
  */
 @Getter
 @Setter
@@ -54,14 +61,16 @@ public class PropertyDTO {
     @NotNull(message = "El número de habitaciones es obligatorio")
     @Min(value = 0, message = "El número de habitaciones no puede ser negativo")
     @Max(value = 50, message = "El número de habitaciones no puede exceder 50")
-    @JsonProperty("nHabit")  // ✅ AGREGADO
+    @JsonProperty("nHabit")
+    @JsonAlias({"nhabit"})
     @Schema(description = "Número de habitaciones", example = "2")
     private int nHabit;
 
     @NotNull(message = "El número de baños es obligatorio")
     @Min(value = 0, message = "El número de baños no puede ser negativo")
     @Max(value = 20, message = "El número de baños no puede exceder 20")
-    @JsonProperty("nBanos")  // ✅ AGREGADO
+    @JsonProperty("nBanos")
+    @JsonAlias({"nbanos"})
     @Schema(description = "Número de baños", example = "2")
     private int nBanos;
 
@@ -77,6 +86,7 @@ public class PropertyDTO {
     @Schema(description = "Fecha de creación de la publicación",
             example = "2025-01-15",
             accessMode = Schema.AccessMode.READ_ONLY)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate fcreacion;
 
     @NotNull(message = "El tipo de propiedad es obligatorio")
