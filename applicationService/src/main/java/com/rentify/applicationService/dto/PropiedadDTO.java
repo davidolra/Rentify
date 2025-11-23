@@ -1,12 +1,12 @@
 package com.rentify.applicationService.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -35,9 +35,11 @@ public class PropiedadDTO {
     private Double m2;
 
     @Schema(description = "Número de habitaciones", example = "2")
+    @JsonProperty("nHabit")
     private Integer nHabit;
 
     @Schema(description = "Número de baños", example = "2")
+    @JsonProperty("nBanos")
     private Integer nBanos;
 
     @Schema(description = "Indica si la propiedad es pet-friendly", example = "true")
@@ -58,10 +60,31 @@ public class PropiedadDTO {
     @Schema(description = "Información de la comuna")
     private ComunaInfo comuna;
 
+    // Getters manuales
+    public Long getId() { return id; }
+    public String getCodigo() { return codigo; }
+    public String getTitulo() { return titulo; }
+    public String getDireccion() { return direccion; }
+    public Double getPrecioMensual() { return precioMensual; }
+    public String getDivisa() { return divisa; }
+    public Double getM2() { return m2; }
+    public Boolean getPetFriendly() { return petFriendly; }
+    public Integer getTipoId() { return tipoId; }
+    public Integer getComunaId() { return comunaId; }
+    public String getFcreacion() { return fcreacion; }
+    public TipoInfo getTipo() { return tipo; }
+    public ComunaInfo getComuna() { return comuna; }
+
+    // Getters con @JsonIgnore para evitar duplicación
+    @JsonIgnore
+    public Integer getNHabit() { return nHabit; }
+
+    @JsonIgnore
+    public Integer getNBanos() { return nBanos; }
+
     /**
      * Clase interna para mapear la información del tipo
      */
-    @Getter
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
@@ -71,12 +94,14 @@ public class PropiedadDTO {
 
         @Schema(description = "Nombre del tipo", example = "Departamento")
         private String nombre;
+
+        public Integer getId() { return id; }
+        public String getNombre() { return nombre; }
     }
 
     /**
      * Clase interna para mapear la información de la comuna
      */
-    @Getter
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
@@ -86,5 +111,8 @@ public class PropiedadDTO {
 
         @Schema(description = "Nombre de la comuna", example = "Providencia")
         private String nombre;
+
+        public Integer getId() { return id; }
+        public String getNombre() { return nombre; }
     }
 }
