@@ -31,11 +31,30 @@ public class UsuarioDTO {
     @Schema(description = "Email del usuario", example = "juan.perez@email.com")
     private String email;
 
-    @Schema(description = "Rol del usuario en el sistema",
-            example = "ARRIENDATARIO",
-            allowableValues = {"ADMIN", "PROPIETARIO", "ARRIENDATARIO"})
-    private String rol;
+    // CAMBIO AQUÍ: De String a RolDTO
+    @Schema(description = "Rol del usuario en el sistema")
+    private RolDTO rol;
 
-    @Schema(description = "Estado del usuario", example = "Activo")
-    private String estado;
+    // CAMBIO AQUÍ: De String a EstadoDTO
+    @Schema(description = "Estado del usuario")
+    private EstadoDTO estado;
+
+    // Clases internas para mapear los objetos anidados
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RolDTO {
+        private Long id;
+        private String nombre;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class EstadoDTO {
+        private Long id;
+        private String nombre;
+    }
 }

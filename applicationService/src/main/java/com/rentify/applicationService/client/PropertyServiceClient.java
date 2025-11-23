@@ -23,19 +23,33 @@ public class PropertyServiceClient {
 
     public PropiedadDTO getPropertyById(Long propertyId) {
         try {
-            return webClientBuilder.build()
+            log.info("🔍 PropertyServiceClient: Intentando obtener propiedad {} desde URL: {}/api/propiedades/{}",
+                    propertyId, propertyServiceUrl, propertyId);
+
+            PropiedadDTO propiedad = webClientBuilder.build()
                     .get()
                     .uri(propertyServiceUrl + "/api/propiedades/" + propertyId)
                     .retrieve()
                     .bodyToMono(PropiedadDTO.class)
-                    .timeout(Duration.ofSeconds(5))
+                    .timeout(Duration.ofSeconds(10))
                     .onErrorResume(error -> {
-                        log.error("Error al obtener propiedad {}: {}", propertyId, error.getMessage());
+                        log.error(" Error al obtener propiedad {}: {} - {}",
+                                propertyId, error.getClass().getSimpleName(), error.getMessage());
                         return Mono.empty();
                     })
                     .block();
+
+            if (propiedad != null) {
+                log.info("Propiedad {} encontrada: ID={}, Título={}, PrecioMensual={}",
+                        propertyId, propiedad.getId(), propiedad.getTitulo(), propiedad.getPrecioMensual());
+            } else {
+                log.warn("⚠ PropertyServiceClient retornó NULL para propiedad {}", propertyId);
+            }
+
+            return propiedad;
         } catch (Exception e) {
-            log.error("Error crítico al comunicarse con Property Service: {}", e.getMessage());
+            log.error(" Error crítico al comunicarse con Property Service: {} - {}",
+                    e.getClass().getSimpleName(), e.getMessage());
             throw new MicroserviceException("No se pudo verificar la propiedad. Intente nuevamente.");
         }
     }
@@ -50,10 +64,17 @@ public class PropertyServiceClient {
         }
     }
 
+    /**
+     * Verifica si una propiedad está disponible
+     * Por ahora asumimos que si existe, está disponible
+     * Esto puede mejorarse cuando Property Service implemente disponibilidad
+     */
     public boolean isPropertyAvailable(Long propertyId) {
         try {
             PropiedadDTO property = getPropertyById(propertyId);
-            return property != null && Boolean.TRUE.equals(property.getDisponible());
+            // Por ahora, si la propiedad existe, la consideramos disponible
+            // En el futuro, Property Service podría devolver un campo "disponible"
+            return property != null;
         } catch (Exception e) {
             log.error("Error al verificar disponibilidad de la propiedad {}: {}", propertyId, e.getMessage());
             return false;

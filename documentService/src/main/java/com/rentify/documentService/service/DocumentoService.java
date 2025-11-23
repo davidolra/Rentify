@@ -60,7 +60,7 @@ public class DocumentoService {
         }
 
         // 2. Validar rol del usuario
-        if (!Roles.puedeSubirDocumentos(usuario.getRol())) {
+        if (!Roles.puedeSubirDocumentos(usuario.getRol().getNombre())) {
             throw new BusinessValidationException(
                     String.format(Mensajes.USUARIO_NO_PUEDE_SUBIR, usuario.getRol())
             );
@@ -86,9 +86,14 @@ public class DocumentoService {
                         String.format(Mensajes.TIPO_DOC_NO_ENCONTRADO, documentoDTO.getTipoDocId())
                 ));
 
-        // 6. Crear y guardar documento
-        Documento documento = modelMapper.map(documentoDTO, Documento.class);
-        documento.setFechaSubido(new Date());
+        // 6. Crear y guardar documento (mapeo manual para evitar conflicto con ModelMapper)
+        Documento documento = Documento.builder()
+                .nombre(documentoDTO.getNombre())
+                .usuarioId(documentoDTO.getUsuarioId())
+                .estadoId(documentoDTO.getEstadoId())
+                .tipoDocId(documentoDTO.getTipoDocId())
+                .fechaSubido(new Date())
+                .build();
 
         Documento saved = documentoRepository.save(documento);
         log.info("Documento creado exitosamente con ID: {}", saved.getId());

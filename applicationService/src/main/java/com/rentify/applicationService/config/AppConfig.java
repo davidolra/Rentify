@@ -13,7 +13,37 @@ public class AppConfig {
 
     @Bean
     public ModelMapper modelMapper() {
-        return new ModelMapper();
+        ModelMapper modelMapper = new ModelMapper();
+
+        // Configuración STRICT para evitar mapeos ambiguos
+        modelMapper.getConfiguration()
+                .setMatchingStrategy(org.modelmapper.convention.MatchingStrategies.STRICT)
+                .setSkipNullEnabled(true);
+
+        // Mapeo explícito: SolicitudArriendoDTO -> SolicitudArriendo
+        modelMapper.createTypeMap(com.rentify.applicationService.dto.SolicitudArriendoDTO.class,
+                        com.rentify.applicationService.model.SolicitudArriendo.class)
+                .addMappings(mapper -> {
+                    mapper.map(com.rentify.applicationService.dto.SolicitudArriendoDTO::getUsuarioId,
+                            com.rentify.applicationService.model.SolicitudArriendo::setUsuarioId);
+                    mapper.map(com.rentify.applicationService.dto.SolicitudArriendoDTO::getPropiedadId,
+                            com.rentify.applicationService.model.SolicitudArriendo::setPropiedadId);
+                    // Ignorar campos que se setean después
+                    mapper.skip(com.rentify.applicationService.model.SolicitudArriendo::setEstado);
+                    mapper.skip(com.rentify.applicationService.model.SolicitudArriendo::setFechaSolicitud);
+                });
+
+        // Mapeo explícito: RegistroArriendoDTO -> RegistroArriendo
+        modelMapper.createTypeMap(com.rentify.applicationService.dto.RegistroArriendoDTO.class,
+                        com.rentify.applicationService.model.RegistroArriendo.class)
+                .addMappings(mapper -> {
+                    mapper.map(com.rentify.applicationService.dto.RegistroArriendoDTO::getSolicitudId,
+                            com.rentify.applicationService.model.RegistroArriendo::setSolicitudId);
+                    // Ignorar campo que se setea después
+                    mapper.skip(com.rentify.applicationService.model.RegistroArriendo::setActivo);
+                });
+
+        return modelMapper;
     }
 
     @Bean

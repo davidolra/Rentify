@@ -91,6 +91,24 @@ public class DocumentoController {
     }
 
     /**
+     * Verifica si un usuario tiene documentos aprobados.
+     * Endpoint útil para otros microservicios (Application Service).
+     */
+    @GetMapping("/usuario/{usuarioId}/verificar-aprobados")
+    @Operation(summary = "Verificar si usuario tiene documentos aprobados",
+            description = "Verifica si un usuario tiene al menos un documento con estado ACEPTADO. " +
+                    "Usado por Application Service para validar solicitudes de arriendo.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Verificación completada exitosamente")
+    })
+    public ResponseEntity<Boolean> verificarDocumentosAprobados(
+            @Parameter(description = "ID del usuario a verificar")
+            @PathVariable Long usuarioId) {
+        boolean hasApproved = documentoService.hasApprovedDocuments(usuarioId);
+        return ResponseEntity.ok(hasApproved);
+    }
+
+    /**
      * Actualiza el estado de un documento.
      */
     @PatchMapping("/{id}/estado/{estadoId}")
@@ -108,11 +126,13 @@ public class DocumentoController {
 
     /**
      * Verifica si un usuario tiene documentos aprobados.
-     * Endpoint útil para otros microservicios.
+     * Endpoint alternativo (DEPRECATED - usar /verificar-aprobados).
      */
     @GetMapping("/usuario/{usuarioId}/aprobados")
-    @Operation(summary = "Verificar documentos aprobados",
-            description = "Verifica si un usuario tiene al menos un documento aprobado")
+    @Operation(summary = "Verificar documentos aprobados (DEPRECATED)",
+            description = "Verifica si un usuario tiene al menos un documento aprobado. " +
+                    "DEPRECATED: Usar /usuario/{usuarioId}/verificar-aprobados en su lugar")
+    @Deprecated
     public ResponseEntity<Boolean> hasApprovedDocuments(@PathVariable Long usuarioId) {
         return ResponseEntity.ok(documentoService.hasApprovedDocuments(usuarioId));
     }

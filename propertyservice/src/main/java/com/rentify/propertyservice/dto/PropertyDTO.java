@@ -2,6 +2,7 @@ package com.rentify.propertyservice.dto;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
@@ -17,6 +18,7 @@ import java.util.List;
  * ✅ int primitivo para nHabit y nBanos (evita problemas de deserialización con 0)
  * ✅ @JsonProperty + @JsonAlias para serialización/deserialización correcta
  * ✅ @JsonFormat para LocalDate (serializa como "yyyy-MM-dd" en lugar de array)
+ * ✅ Getters/Setters personalizados para evitar duplicados de Jackson
  */
 @Getter
 @Setter
@@ -115,4 +117,26 @@ public class PropertyDTO {
     @Schema(description = "Lista de categorías asociadas",
             accessMode = Schema.AccessMode.READ_ONLY)
     private List<CategoriaDTO> categorias;
+
+    // ✅ GETTERS/SETTERS PERSONALIZADOS para nHabit
+    @JsonIgnore
+    public int getNHabit() {
+        return nHabit;
+    }
+
+    @JsonIgnore
+    public void setNHabit(int nHabit) {
+        this.nHabit = nHabit;
+    }
+
+    // ✅ GETTERS/SETTERS PERSONALIZADOS para nBanos
+    @JsonIgnore
+    public int getNBanos() {
+        return nBanos;
+    }
+
+    @JsonIgnore
+    public void setNBanos(int nBanos) {
+        this.nBanos = nBanos;
+    }
 }

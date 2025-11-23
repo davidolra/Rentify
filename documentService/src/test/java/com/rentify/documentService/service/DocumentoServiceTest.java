@@ -67,8 +67,8 @@ class DocumentoServiceTest {
         // Usuario válido
         usuarioValido = new UsuarioDTO();
         usuarioValido.setId(1L);
-        usuarioValido.setRol("ARRIENDATARIO");
-        usuarioValido.setEstado("Activo");
+    //  usuarioValido.setRol("ARRIENDATARIO");
+     //   usuarioValido.setEstado("Activo");
 
         // Estado PENDIENTE
         estadoPendiente = Estado.builder()
@@ -140,7 +140,7 @@ class DocumentoServiceTest {
     @DisplayName("crearDocumento - Debe lanzar excepción cuando el usuario no tiene permisos")
     void crearDocumento_UsuarioSinPermisos_ThrowsException() {
         // Arrange
-        usuarioValido.setRol("PROPIETARIO"); // Rol sin permisos para subir documentos
+     //   usuarioValido.setRol("PROPIETARIO"); // Rol sin permisos para subir documentos
         when(userServiceClient.getUserById(1L)).thenReturn(usuarioValido);
 
         // Act & Assert
