@@ -1,5 +1,6 @@
 package com.rentify.propertyservice.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -53,14 +54,16 @@ public class PropertyDTO {
     @NotNull(message = "El número de habitaciones es obligatorio")
     @Min(value = 0, message = "El número de habitaciones no puede ser negativo")
     @Max(value = 50, message = "El número de habitaciones no puede exceder 50")
+    @JsonProperty("nHabit")  // ✅ AGREGADO
     @Schema(description = "Número de habitaciones", example = "2")
-    private Integer nHabit;
+    private int nHabit;
 
     @NotNull(message = "El número de baños es obligatorio")
     @Min(value = 0, message = "El número de baños no puede ser negativo")
     @Max(value = 20, message = "El número de baños no puede exceder 20")
+    @JsonProperty("nBanos")  // ✅ AGREGADO
     @Schema(description = "Número de baños", example = "2")
-    private Integer nBanos;
+    private int nBanos;
 
     @Schema(description = "Indica si acepta mascotas", example = "true")
     private Boolean petFriendly;

@@ -233,12 +233,8 @@ public class PropertyService {
         if (propertyDTO.getM2() != null) {
             property.setM2(propertyDTO.getM2());
         }
-        if (propertyDTO.getNHabit() != null) {
-            property.setNHabit(propertyDTO.getNHabit());
-        }
-        if (propertyDTO.getNBanos() != null) {
-            property.setNBanos(propertyDTO.getNBanos());
-        }
+        property.setNHabit(propertyDTO.getNHabit());
+        property.setNBanos(propertyDTO.getNBanos());
         if (propertyDTO.getPetFriendly() != null) {
             property.setPetFriendly(propertyDTO.getPetFriendly());
         }
