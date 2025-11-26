@@ -53,10 +53,29 @@ public final class DocumentConstants {
 
         private Roles() {}
 
+        /**
+         * ✅ CORREGIDO: Ahora PROPIETARIOS también pueden subir documentos
+         *
+         * JUSTIFICACIÓN:
+         * - Todos los usuarios (PROPIETARIO y ARRIENDATARIO) necesitan verificación de identidad
+         * - Los propietarios deben demostrar propiedad del inmueble
+         * - El proceso de registro requiere documentos de ambos tipos de usuarios
+         *
+         * @param rol Nombre del rol del usuario
+         * @return true si el rol puede subir documentos
+         */
         public static boolean puedeSubirDocumentos(String rol) {
-            return ARRIENDATARIO.equals(rol) || ADMIN.equals(rol);
+            return ARRIENDATARIO.equals(rol) ||
+                    PROPIETARIO.equals(rol) ||    // ✅ AGREGADO: Propietarios ahora pueden subir documentos
+                    ADMIN.equals(rol);
         }
 
+        /**
+         * Verifica si un rol puede validar/aprobar documentos de otros usuarios.
+         *
+         * @param rol Nombre del rol del usuario
+         * @return true si el rol puede validar documentos
+         */
         public static boolean puedeValidarDocumentos(String rol) {
             return ADMIN.equals(rol) || PROPIETARIO.equals(rol);
         }
