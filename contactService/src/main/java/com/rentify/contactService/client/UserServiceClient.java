@@ -32,7 +32,7 @@ public class UserServiceClient {
 
             return webClientBuilder.build()
                     .get()
-                    .uri(userServiceUrl + "/api/usuarios/" + userId)
+                    .uri(userServiceUrl + "/api/usuarios/" + userId + "?includeDetails=true")
                     .retrieve()
                     .bodyToMono(UsuarioDTO.class)
                     .timeout(Duration.ofSeconds(5))
@@ -73,7 +73,10 @@ public class UserServiceClient {
             if (user == null) {
                 return false;
             }
-            return "ADMIN".equalsIgnoreCase(user.getRol());
+
+            // CAMBIO: Usar el método helper getRolNombre()
+            String rolNombre = user.getRolNombre();
+            return "ADMIN".equalsIgnoreCase(rolNombre);
         } catch (Exception e) {
             log.error("Error al verificar rol de administrador para usuario {}: {}", userId, e.getMessage());
             return false;
@@ -88,7 +91,8 @@ public class UserServiceClient {
     public String getUserRole(Long userId) {
         try {
             UsuarioDTO user = getUserById(userId);
-            return user != null ? user.getRol() : null;
+            // CAMBIO: Usar el método helper getRolNombre()
+            return user != null ? user.getRolNombre() : null;
         } catch (Exception e) {
             log.error("Error al obtener rol del usuario {}: {}", userId, e.getMessage());
             return null;
@@ -106,8 +110,11 @@ public class UserServiceClient {
             if (user == null) {
                 return false;
             }
-            return "ACTIVO".equalsIgnoreCase(user.getEstado()) ||
-                    "Activo".equalsIgnoreCase(user.getEstado());
+
+            // CAMBIO: Usar el método helper getEstadoNombre()
+            String estadoNombre = user.getEstadoNombre();
+            return "ACTIVO".equalsIgnoreCase(estadoNombre) ||
+                    "Activo".equalsIgnoreCase(estadoNombre);
         } catch (Exception e) {
             log.error("Error al verificar estado del usuario {}: {}", userId, e.getMessage());
             return false;
