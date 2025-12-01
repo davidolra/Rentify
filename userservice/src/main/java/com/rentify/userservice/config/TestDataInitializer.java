@@ -64,15 +64,15 @@ public class TestDataInitializer {
 
                 // 1. ADMIN - Daniel Olivares (DuocUC VIP)
                 Usuario admin = Usuario.builder()
-                        .pnombre("Daniel")
-                        .snombre("Andrés")
-                        .papellido("Olivares")
-                        .fnacimiento(LocalDate.of(1990, 3, 15))
+                        .pnombre("David")
+                        .snombre("Ignacio")
+                        .papellido("Olave")
+                        .fnacimiento(LocalDate.of(1996, 11, 12))
                         .email("da.olaver@duocuc.cl")
-                        .rut("12345678-9")
-                        .ntelefono("+56912345678")
+                        .rut("19430962-7")
+                        .ntelefono("+56941747707")
                         .duocVip(true)  // Correo @duocuc.cl
-                        .clave("12345678")  // Contraseña simple para testing
+                        .clave("Admin123!")  // Contraseña simple para testing
                         .puntos(0)
                         .codigoRef("ADMIN001")
                         .fcreacion(LocalDate.now())
@@ -83,15 +83,15 @@ public class TestDataInitializer {
 
                 // 2. PROPIETARIO - Francisco González (DuocUC VIP)
                 Usuario propietario1 = Usuario.builder()
-                        .pnombre("Francisco")
+                        .pnombre("Fernanda")
                         .snombre("Santiago")
-                        .papellido("González")
+                        .papellido("Gonzalez")
                         .fnacimiento(LocalDate.of(1988, 7, 20))
                         .email("fs.gonzalez@duocuc.cl")
                         .rut("98765432-1")
                         .ntelefono("+56987654321")
                         .duocVip(true)  // Correo @duocuc.cl
-                        .clave("12345678")
+                        .clave("Miauu123!")
                         .puntos(0)
                         .codigoRef("PROP001")
                         .fcreacion(LocalDate.now())
@@ -110,7 +110,7 @@ public class TestDataInitializer {
                         .rut("11111111-1")
                         .ntelefono("+56911111111")
                         .duocVip(false)  // Correo normal
-                        .clave("password123")  // Contraseña de 11 caracteres
+                        .clave("Miauu123!")  // Contraseña de 11 caracteres
                         .puntos(0)
                         .codigoRef("ABC123XYZ")
                         .fcreacion(LocalDate.now())
@@ -129,7 +129,7 @@ public class TestDataInitializer {
                         .rut("22222222-2")
                         .ntelefono("+56922222222")
                         .duocVip(true)  // Correo @duoc.cl
-                        .clave("12345678")
+                        .clave("Miau123!")
                         .puntos(100)  // Usuario con puntos
                         .codigoRef("DUOC12345")
                         .fcreacion(LocalDate.now())
@@ -148,7 +148,7 @@ public class TestDataInitializer {
                         .rut("33333333-3")
                         .ntelefono("+56933333333")
                         .duocVip(false)  // Correo normal
-                        .clave("12345678")
+                        .clave("Miau123!")
                         .puntos(50)  // Usuario con puntos
                         .codigoRef("PROP54321")
                         .fcreacion(LocalDate.now())
@@ -170,11 +170,11 @@ public class TestDataInitializer {
                 log.info("   - 2 ARRIENDATARIOS (1 VIP, 1 normal)");
                 log.info("");
                 log.info("📧 Usuarios disponibles para testing:");
-                log.info("   [ADMIN]         da.olaver@duocuc.cl      / 12345678");
-                log.info("   [PROPIETARIO]   fs.gonzalez@duocuc.cl    / 12345678");
-                log.info("   [ARRIENDATARIO] juan.perez@email.com     / password123");
-                log.info("   [ARRIENDATARIO] maria.lopez@duoc.cl      / 12345678");
-                log.info("   [PROPIETARIO]   pedro.ramirez@email.com  / 12345678");
+                log.info("   [ADMIN]         da.olaver@duocuc.cl      / Admin123!");
+                log.info("   [PROPIETARIO]   fs.gonzalez@duocuc.cl    / Miau123!");
+                log.info("   [ARRIENDATARIO] juan.perez@email.com     / Miau123!");
+                log.info("   [ARRIENDATARIO] maria.lopez@duoc.cl      / Miau123!");
+                log.info("   [PROPIETARIO]   pedro.ramirez@email.com  / Miau123!");
                 log.info("");
                 log.info("🌟 Usuarios DuocUC VIP: 3 (20% descuento en comisiones)");
             } else {
