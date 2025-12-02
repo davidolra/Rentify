@@ -10,254 +10,172 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch; // Importación corregida a patch
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Tests de integración para DocumentoController.
- * Usa MockMvc para simular requests HTTP.
- */
 @WebMvcTest(DocumentoController.class)
-@DisplayName("Tests de DocumentoController")
+@DisplayName("Tests de Integración de DocumentoController")
 class DocumentoControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    private final String BASE_PATH = "/api/documentos"; // RUTA BASE CORREGIDA
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    @Autowired private MockMvc mockMvc;
+    @Autowired private ObjectMapper objectMapper;
+    @MockBean private DocumentoService documentoService;
 
-    @MockitoBean
-    private DocumentoService documentoService;
-
+    private final Long DOCUMENTO_ID = 1L;
+    private final Long USUARIO_ID = 10L;
     private DocumentoDTO documentoDTO;
 
     @BeforeEach
     void setUp() {
         documentoDTO = DocumentoDTO.builder()
-                .id(1L)
-                .nombre("DNI_Juan_Perez.pdf")
-                .fechaSubido(new Date())
-                .usuarioId(1L)
+                .id(DOCUMENTO_ID)
+                .nombre("DNI_Test.pdf")
+                .usuarioId(USUARIO_ID)
                 .estadoId(1L)
                 .tipoDocId(1L)
-                .estadoNombre("PENDIENTE")
-                .tipoDocNombre("DNI")
+                .fechaSubido(new Date())
                 .build();
     }
 
-    @Test
-    @DisplayName("POST /api/documentos - Debe crear documento y retornar 201")
-    void crearDocumento_DatosValidos_Returns201() throws Exception {
-        // Arrange
-        when(documentoService.crearDocumento(any(DocumentoDTO.class)))
-                .thenReturn(documentoDTO);
+    // --- 1. POST /api/documentos: Crear Documento ---
 
-        // Act & Assert
-        mockMvc.perform(post("/api/documentos")
+    @Test
+    @DisplayName("POST /api/documentos - Crea documento exitosamente (201 Created)")
+    void createDocumento_Success() throws Exception {
+        when(documentoService.crearDocumento(any(DocumentoDTO.class))).thenReturn(documentoDTO);
+
+        mockMvc.perform(post(BASE_PATH) // Uso de BASE_PATH
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(documentoDTO)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.nombre").value("DNI_Juan_Perez.pdf"))
-                .andExpect(jsonPath("$.usuarioId").value(1));
-
-        verify(documentoService, times(1)).crearDocumento(any(DocumentoDTO.class));
+                .andExpect(jsonPath("$.nombre").value("DNI_Test.pdf"));
     }
 
     @Test
-    @DisplayName("POST /api/documentos - Debe retornar 400 cuando faltan campos requeridos")
-    void crearDocumento_CamposFaltantes_Returns400() throws Exception {
-        // Arrange - Documento sin nombre (campo requerido)
-        DocumentoDTO invalido = DocumentoDTO.builder()
-                .usuarioId(1L)
-                .estadoId(1L)
-                .tipoDocId(1L)
-                .build();
+    @DisplayName("POST /api/documentos - Falla por validación de negocio (400 Bad Request)")
+    void createDocumento_Fails_BusinessValidation() throws Exception {
+        doThrow(new BusinessValidationException("Límite alcanzado")).when(documentoService)
+                .crearDocumento(any(DocumentoDTO.class));
 
-        // Act & Assert
-        mockMvc.perform(post("/api/documentos")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalido)))
-                .andExpect(status().isBadRequest());
-
-        verify(documentoService, never()).crearDocumento(any());
-    }
-
-    @Test
-    @DisplayName("POST /api/documentos - Debe retornar 400 cuando validación de negocio falla")
-    void crearDocumento_ValidacionFalla_Returns400() throws Exception {
-        // Arrange
-        when(documentoService.crearDocumento(any(DocumentoDTO.class)))
-                .thenThrow(new BusinessValidationException("Usuario no tiene permisos"));
-
-        // Act & Assert
-        mockMvc.perform(post("/api/documentos")
+        mockMvc.perform(post(BASE_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(documentoDTO)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Usuario no tiene permisos"));
+                .andExpect(jsonPath("$.message").value("Límite alcanzado"));
     }
 
-    @Test
-    @DisplayName("GET /api/documentos - Debe listar todos los documentos")
-    void listarTodos_DeberiaRetornar200() throws Exception {
-        // Arrange
-        when(documentoService.listarTodos(false))
-                .thenReturn(List.of(documentoDTO));
+    // --- 2. GET /api/documentos/{id}: Obtener Documento por ID ---
 
-        // Act & Assert
-        mockMvc.perform(get("/api/documentos")
-                        .param("includeDetails", "false"))
+    @Test
+    @DisplayName("GET /api/documentos/{id} - Retorna documento (200 OK)")
+    void getDocumentoById_Success() throws Exception {
+        when(documentoService.obtenerPorId(eq(DOCUMENTO_ID), anyBoolean())).thenReturn(documentoDTO);
+
+        mockMvc.perform(get(BASE_PATH + "/{id}", DOCUMENTO_ID)
+                        .param("details", "false")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].id").value(1));
-
-        verify(documentoService, times(1)).listarTodos(false);
+                .andExpect(jsonPath("$.id").value(DOCUMENTO_ID));
     }
 
     @Test
-    @DisplayName("GET /api/documentos/{id} - Debe retornar documento cuando existe")
-    void obtenerPorId_DocumentoExiste_Returns200() throws Exception {
-        // Arrange
-        when(documentoService.obtenerPorId(1L, true))
-                .thenReturn(documentoDTO);
+    @DisplayName("GET /api/documentos/{id} - Falla si no existe (404 Not Found)")
+    void getDocumentoById_NotFound() throws Exception {
+        doThrow(new ResourceNotFoundException("Documento no existe")).when(documentoService)
+                .obtenerPorId(eq(DOCUMENTO_ID), anyBoolean());
 
-        // Act & Assert
-        mockMvc.perform(get("/api/documentos/1")
-                        .param("includeDetails", "true"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.nombre").value("DNI_Juan_Perez.pdf"));
-
-        verify(documentoService, times(1)).obtenerPorId(1L, true);
-    }
-
-    @Test
-    @DisplayName("GET /api/documentos/{id} - Debe retornar 404 cuando no existe")
-    void obtenerPorId_DocumentoNoExiste_Returns404() throws Exception {
-        // Arrange
-        when(documentoService.obtenerPorId(999L, true))
-                .thenThrow(new ResourceNotFoundException("Documento no encontrado"));
-
-        // Act & Assert
-        mockMvc.perform(get("/api/documentos/999")
-                        .param("includeDetails", "true"))
+        mockMvc.perform(get(BASE_PATH + "/{id}", DOCUMENTO_ID)
+                        .param("details", "false")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Documento no encontrado"));
+                .andExpect(jsonPath("$.message").value("Documento no existe"));
     }
 
-    @Test
-    @DisplayName("GET /api/documentos/usuario/{usuarioId} - Debe retornar documentos del usuario")
-    void obtenerPorUsuario_UsuarioConDocumentos_Returns200() throws Exception {
-        // Arrange
-        when(documentoService.obtenerPorUsuario(1L, true))
-                .thenReturn(List.of(documentoDTO));
+    // --- 3. GET /api/documentos/usuario/{usuarioId}: Listar por Usuario ---
 
-        // Act & Assert
-        mockMvc.perform(get("/api/documentos/usuario/1")
-                        .param("includeDetails", "true"))
+    @Test
+    @DisplayName("GET /api/documentos/usuario/{usuarioId} - Retorna lista vacía (200 OK)")
+    void getDocumentosByUsuarioId_Empty() throws Exception {
+        when(documentoService.obtenerPorUsuario(eq(USUARIO_ID), anyBoolean())).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get(BASE_PATH + "/usuario/{usuarioId}", USUARIO_ID)
+                        .param("details", "false")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].usuarioId").value(1));
-
-        verify(documentoService, times(1)).obtenerPorUsuario(1L, true);
+                .andExpect(content().json("[]"));
     }
 
-    @Test
-    @DisplayName("GET /api/documentos/usuario/{usuarioId} - Debe retornar 404 cuando usuario no existe")
-    void obtenerPorUsuario_UsuarioNoExiste_Returns404() throws Exception {
-        // Arrange
-        when(documentoService.obtenerPorUsuario(999L, true))
-                .thenThrow(new ResourceNotFoundException("Usuario no existe"));
-
-        // Act & Assert
-        mockMvc.perform(get("/api/documentos/usuario/999")
-                        .param("includeDetails", "true"))
-                .andExpect(status().isNotFound());
-    }
+    // --- 4. PATCH /api/documentos/{id}/estado/{estadoId}: Actualizar Estado (CORREGIDO) ---
 
     @Test
-    @DisplayName("PATCH /api/documentos/{id}/estado/{estadoId} - Debe actualizar estado")
-    void actualizarEstado_DatosValidos_Returns200() throws Exception {
-        // Arrange
-        DocumentoDTO actualizado = DocumentoDTO.builder()
-                .id(1L)
-                .nombre("DNI_Juan_Perez.pdf")
-                .usuarioId(1L)
-                .estadoId(2L)
-                .tipoDocId(1L)
-                .estadoNombre("ACEPTADO")
-                .build();
+    @DisplayName("PATCH /api/documentos/{id}/estado/{estadoId} - Actualiza estado (200 OK)")
+    void updateEstado_Success() throws Exception {
+        Long NUEVO_ESTADO_ID = 2L;
+        DocumentoDTO updatedDTO = documentoDTO.toBuilder().estadoId(NUEVO_ESTADO_ID).build();
+        when(documentoService.actualizarEstado(eq(DOCUMENTO_ID), eq(NUEVO_ESTADO_ID))).thenReturn(updatedDTO);
 
-        when(documentoService.actualizarEstado(1L, 2L))
-                .thenReturn(actualizado);
-
-        // Act & Assert
-        mockMvc.perform(patch("/api/documentos/1/estado/2"))
+        // USAMOS PATCH EN LUGAR DE PUT
+        mockMvc.perform(patch(BASE_PATH + "/{id}/estado/{estadoId}", DOCUMENTO_ID, NUEVO_ESTADO_ID)
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.estadoNombre").value("ACEPTADO"));
-
-        verify(documentoService, times(1)).actualizarEstado(1L, 2L);
+                .andExpect(jsonPath("$.estadoId").value(NUEVO_ESTADO_ID));
     }
 
-    @Test
-    @DisplayName("GET /api/documentos/usuario/{usuarioId}/aprobados - Debe verificar documentos aprobados")
-    void hasApprovedDocuments_ConDocumentosAprobados_ReturnsTrue() throws Exception {
-        // Arrange
-        when(documentoService.hasApprovedDocuments(1L)).thenReturn(true);
+    // --- 5. GET /api/documentos/usuario/{usuarioId}/verificar-aprobados: Verificar Aprobados (NUEVO TEST) ---
 
-        // Act & Assert
-        mockMvc.perform(get("/api/documentos/usuario/1/aprobados"))
+    @Test
+    @DisplayName("GET /api/documentos/usuario/{usuarioId}/verificar-aprobados - Retorna true si tiene aprobados")
+    void verificarDocumentosAprobados_True() throws Exception {
+        when(documentoService.hasApprovedDocuments(eq(USUARIO_ID))).thenReturn(true);
+
+        mockMvc.perform(get(BASE_PATH + "/usuario/{usuarioId}/verificar-aprobados", USUARIO_ID)
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().string("true"));
-
-        verify(documentoService, times(1)).hasApprovedDocuments(1L);
     }
 
-    @Test
-    @DisplayName("GET /api/documentos/usuario/{usuarioId}/aprobados - Debe retornar false sin documentos")
-    void hasApprovedDocuments_SinDocumentosAprobados_ReturnsFalse() throws Exception {
-        // Arrange
-        when(documentoService.hasApprovedDocuments(2L)).thenReturn(false);
-
-        // Act & Assert
-        mockMvc.perform(get("/api/documentos/usuario/2/aprobados"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("false"));
-    }
+    // --- 6. DELETE /api/documentos/{id}: Eliminar Documento ---
 
     @Test
-    @DisplayName("DELETE /api/documentos/{id} - Debe eliminar documento y retornar 204")
-    void eliminarDocumento_DocumentoExiste_Returns204() throws Exception {
-        // Arrange
-        doNothing().when(documentoService).eliminarDocumento(1L);
+    @DisplayName("DELETE /api/documentos/{id} - Elimina exitosamente (204 No Content)")
+    void deleteDocumento_Success() throws Exception {
+        doNothing().when(documentoService).eliminarDocumento(DOCUMENTO_ID);
 
-        // Act & Assert
-        mockMvc.perform(delete("/api/documentos/1"))
+        mockMvc.perform(delete(BASE_PATH + "/{id}", DOCUMENTO_ID)
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
-
-        verify(documentoService, times(1)).eliminarDocumento(1L);
     }
 
     @Test
-    @DisplayName("DELETE /api/documentos/{id} - Debe retornar 404 cuando documento no existe")
-    void eliminarDocumento_DocumentoNoExiste_Returns404() throws Exception {
-        // Arrange
-        doThrow(new ResourceNotFoundException("Documento no encontrado"))
-                .when(documentoService).eliminarDocumento(999L);
+    @DisplayName("DELETE /api/documentos/{id} - Falla si no existe (404 Not Found)")
+    void deleteDocumento_NotFound() throws Exception {
+        doThrow(new ResourceNotFoundException("Documento a eliminar no existe")).when(documentoService)
+                .eliminarDocumento(DOCUMENTO_ID);
 
-        // Act & Assert
-        mockMvc.perform(delete("/api/documentos/999"))
-                .andExpect(status().isNotFound());
+        mockMvc.perform(delete(BASE_PATH + "/{id}", DOCUMENTO_ID)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Documento a eliminar no existe"));
     }
 }

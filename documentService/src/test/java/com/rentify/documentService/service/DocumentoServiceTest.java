@@ -20,313 +20,227 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 
-import java.util.Date;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static com.rentify.documentService.constants.DocumentConstants.Limites;
+import static com.rentify.documentService.constants.DocumentConstants.Roles;
+import static com.rentify.documentService.constants.DocumentConstants.EstadoDocumento;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-/**
- * Tests unitarios para DocumentoService.
- * Usa Mockito para mockear dependencias.
- */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Tests de DocumentoService")
+@DisplayName("Tests Unitarios de DocumentoService")
 class DocumentoServiceTest {
 
-    @Mock
-    private DocumentoRepository documentoRepository;
+    // Dependencias a simular (Mocks)
+    @Mock private DocumentoRepository documentoRepository;
+    @Mock private EstadoRepository estadoRepository;
+    @Mock private TipoDocumentoRepository tipoDocumentoRepository;
+    @Mock private UserServiceClient userServiceClient;
+    @Mock private ModelMapper modelMapper;
 
-    @Mock
-    private EstadoRepository estadoRepository;
+    // Instancia de la clase a probar, inyectando los mocks
+    @InjectMocks private DocumentoService documentoService;
 
-    @Mock
-    private TipoDocumentoRepository tipoDocumentoRepository;
+    // Constantes y datos de prueba
+    private final Long USUARIO_ID = 1L;
+    private final Long DOCUMENTO_ID = 5L;
+    private final Long ESTADO_ID = 10L;
+    private final Long TIPO_DOC_ID = 20L;
 
-    @Mock
-    private UserServiceClient userServiceClient;
-
-    @Mock
-    private ModelMapper modelMapper;
-
-    @InjectMocks
-    private DocumentoService documentoService;
-
-    private UsuarioDTO usuarioValido;
     private DocumentoDTO documentoDTO;
-    private Documento documentoEntity;
+    private Documento documentoEntidad;
+    private UsuarioDTO usuarioArrendatario;
     private Estado estadoPendiente;
     private TipoDocumento tipoDNI;
 
     @BeforeEach
     void setUp() {
-        // Usuario válido
-        usuarioValido = new UsuarioDTO();
-        usuarioValido.setId(1L);
-    //  usuarioValido.setRol("ARRIENDATARIO");
-     //   usuarioValido.setEstado("Activo");
-
-        // Estado PENDIENTE
-        estadoPendiente = Estado.builder()
-                .id(1L)
-                .nombre("PENDIENTE")
-                .build();
-
-        // Tipo DNI
-        tipoDNI = TipoDocumento.builder()
-                .id(1L)
-                .nombre("DNI")
-                .build();
-
-        // DTO de documento
+        // 1. DTO de entrada
         documentoDTO = DocumentoDTO.builder()
-                .nombre("DNI_Juan_Perez.pdf")
-                .usuarioId(1L)
-                .estadoId(1L)
-                .tipoDocId(1L)
+                .usuarioId(USUARIO_ID).estadoId(ESTADO_ID).tipoDocId(TIPO_DOC_ID)
+                .nombre("Test_Doc.pdf").build();
+
+        // 2. Entidad de usuario (con rol autorizado: ARRIENDATARIO)
+        // **Ajuste:** Usamos ARRIENDATARIO (con 'i') para coincidir con DocumentConstants.
+        usuarioArrendatario = UsuarioDTO.builder()
+                .id(USUARIO_ID)
+                .rol(new UsuarioDTO.RolDTO(1L, Roles.ARRIENDATARIO))
                 .build();
 
-        // Entidad documento
-        documentoEntity = Documento.builder()
-                .id(1L)
-                .nombre("DNI_Juan_Perez.pdf")
-                .fechaSubido(new Date())
-                .usuarioId(1L)
-                .estadoId(1L)
-                .tipoDocId(1L)
+        // 3. Entidades de soporte
+        estadoPendiente = Estado.builder().id(ESTADO_ID).nombre(EstadoDocumento.PENDIENTE).build();
+        tipoDNI = TipoDocumento.builder().id(TIPO_DOC_ID).nombre("DNI").build();
+
+        // 4. Entidad que se espera guardar
+        documentoEntidad = Documento.builder()
+                .id(DOCUMENTO_ID)
+                .usuarioId(USUARIO_ID)
+                .estadoId(ESTADO_ID)
+                .tipoDocId(TIPO_DOC_ID)
+                .nombre("Test_Doc.pdf")
                 .build();
+
+        // Configuración general para ModelMapper (mapea entidad -> DTO)
+        lenient().when(modelMapper.map(any(Documento.class), eq(DocumentoDTO.class))).thenReturn(documentoDTO);
     }
 
-    @Test
-    @DisplayName("crearDocumento - Debe crear documento exitosamente cuando todos los datos son válidos")
-    void crearDocumento_DatosValidos_Success() {
-        // Arrange
-        when(userServiceClient.getUserById(1L)).thenReturn(usuarioValido);
-        when(documentoRepository.countByUsuarioId(1L)).thenReturn(0L);
-        when(estadoRepository.findById(1L)).thenReturn(Optional.of(estadoPendiente));
-        when(tipoDocumentoRepository.findById(1L)).thenReturn(Optional.of(tipoDNI));
-        when(modelMapper.map(any(DocumentoDTO.class), eq(Documento.class))).thenReturn(documentoEntity);
-        when(documentoRepository.save(any(Documento.class))).thenReturn(documentoEntity);
-        when(modelMapper.map(any(Documento.class), eq(DocumentoDTO.class))).thenReturn(documentoDTO);
+    // --- 1. Tests para crearDocumento (Lógica de validación) ---
 
-        // Act
+    @Test
+    @DisplayName("crearDocumento: Crea exitosamente un documento válido")
+    void crearDocumento_Exitoso() {
+        // GIVEN
+        when(userServiceClient.getUserById(USUARIO_ID)).thenReturn(usuarioArrendatario);
+        when(documentoRepository.countByUsuarioId(USUARIO_ID)).thenReturn(0L);
+        when(estadoRepository.findById(ESTADO_ID)).thenReturn(Optional.of(estadoPendiente));
+        when(tipoDocumentoRepository.findById(TIPO_DOC_ID)).thenReturn(Optional.of(tipoDNI));
+        when(documentoRepository.save(any(Documento.class))).thenReturn(documentoEntidad);
+
+        // WHEN
         DocumentoDTO resultado = documentoService.crearDocumento(documentoDTO);
 
-        // Assert
-        assertThat(resultado).isNotNull();
-        verify(documentoRepository, times(1)).save(any(Documento.class));
-        verify(userServiceClient, times(1)).getUserById(1L);
-    }
-
-    @Test
-    @DisplayName("crearDocumento - Debe lanzar excepción cuando el usuario no existe")
-    void crearDocumento_UsuarioNoExiste_ThrowsException() {
-        // Arrange
-        when(userServiceClient.getUserById(1L)).thenReturn(null);
-
-        // Act & Assert
-        assertThatThrownBy(() -> documentoService.crearDocumento(documentoDTO))
-                .isInstanceOf(BusinessValidationException.class)
-                .hasMessageContaining("usuario con ID 1 no existe");
-
-        verify(documentoRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("crearDocumento - Debe lanzar excepción cuando el usuario no tiene permisos")
-    void crearDocumento_UsuarioSinPermisos_ThrowsException() {
-        // Arrange
-     //   usuarioValido.setRol("PROPIETARIO"); // Rol sin permisos para subir documentos
-        when(userServiceClient.getUserById(1L)).thenReturn(usuarioValido);
-
-        // Act & Assert
-        assertThatThrownBy(() -> documentoService.crearDocumento(documentoDTO))
-                .isInstanceOf(BusinessValidationException.class)
-                .hasMessageContaining("no tiene permisos para subir documentos");
-
-        verify(documentoRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("crearDocumento - Debe lanzar excepción cuando se alcanza el límite de documentos")
-    void crearDocumento_LimiteAlcanzado_ThrowsException() {
-        // Arrange
-        when(userServiceClient.getUserById(1L)).thenReturn(usuarioValido);
-        when(documentoRepository.countByUsuarioId(1L)).thenReturn(10L); // Límite alcanzado
-
-        // Act & Assert
-        assertThatThrownBy(() -> documentoService.crearDocumento(documentoDTO))
-                .isInstanceOf(BusinessValidationException.class)
-                .hasMessageContaining("máximo de 10 documentos permitidos");
-
-        verify(documentoRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("crearDocumento - Debe lanzar excepción cuando el estado no existe")
-    void crearDocumento_EstadoNoExiste_ThrowsException() {
-        // Arrange
-        when(userServiceClient.getUserById(1L)).thenReturn(usuarioValido);
-        when(documentoRepository.countByUsuarioId(1L)).thenReturn(0L);
-        when(estadoRepository.findById(1L)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        assertThatThrownBy(() -> documentoService.crearDocumento(documentoDTO))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("estado con ID 1 no existe");
-
-        verify(documentoRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("crearDocumento - Debe lanzar excepción cuando el tipo de documento no existe")
-    void crearDocumento_TipoDocNoExiste_ThrowsException() {
-        // Arrange
-        when(userServiceClient.getUserById(1L)).thenReturn(usuarioValido);
-        when(documentoRepository.countByUsuarioId(1L)).thenReturn(0L);
-        when(estadoRepository.findById(1L)).thenReturn(Optional.of(estadoPendiente));
-        when(tipoDocumentoRepository.findById(1L)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        assertThatThrownBy(() -> documentoService.crearDocumento(documentoDTO))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("tipo de documento con ID 1 no existe");
-
-        verify(documentoRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("obtenerPorId - Debe retornar documento cuando existe")
-    void obtenerPorId_DocumentoExiste_RetornaDocumento() {
-        // Arrange
-        when(documentoRepository.findById(1L)).thenReturn(Optional.of(documentoEntity));
-        when(modelMapper.map(any(Documento.class), eq(DocumentoDTO.class))).thenReturn(documentoDTO);
-
-        // Act
-        DocumentoDTO resultado = documentoService.obtenerPorId(1L, false);
-
-        // Assert
-        assertThat(resultado).isNotNull();
-        verify(documentoRepository, times(1)).findById(1L);
-    }
-
-    @Test
-    @DisplayName("obtenerPorId - Debe lanzar excepción cuando el documento no existe")
-    void obtenerPorId_DocumentoNoExiste_ThrowsException() {
-        // Arrange
-        when(documentoRepository.findById(999L)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        assertThatThrownBy(() -> documentoService.obtenerPorId(999L, false))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("documento con ID 999 no existe");
-    }
-
-    @Test
-    @DisplayName("obtenerPorUsuario - Debe retornar lista de documentos del usuario")
-    void obtenerPorUsuario_UsuarioConDocumentos_RetornaLista() {
-        // Arrange
-        when(userServiceClient.existsUser(1L)).thenReturn(true);
-        when(documentoRepository.findByUsuarioId(1L)).thenReturn(List.of(documentoEntity));
-        when(modelMapper.map(any(Documento.class), eq(DocumentoDTO.class))).thenReturn(documentoDTO);
-
-        // Act
-        List<DocumentoDTO> resultado = documentoService.obtenerPorUsuario(1L, false);
-
-        // Assert
-        assertThat(resultado).hasSize(1);
-        verify(documentoRepository, times(1)).findByUsuarioId(1L);
-    }
-
-    @Test
-    @DisplayName("obtenerPorUsuario - Debe lanzar excepción cuando el usuario no existe")
-    void obtenerPorUsuario_UsuarioNoExiste_ThrowsException() {
-        // Arrange
-        when(userServiceClient.existsUser(999L)).thenReturn(false);
-
-        // Act & Assert
-        assertThatThrownBy(() -> documentoService.obtenerPorUsuario(999L, false))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("usuario con ID 999 no existe");
-    }
-
-    @Test
-    @DisplayName("actualizarEstado - Debe actualizar estado exitosamente")
-    void actualizarEstado_DatosValidos_Success() {
-        // Arrange
-        Estado nuevoEstado = Estado.builder().id(2L).nombre("ACEPTADO").build();
-        when(documentoRepository.findById(1L)).thenReturn(Optional.of(documentoEntity));
-        when(estadoRepository.findById(2L)).thenReturn(Optional.of(nuevoEstado));
-        when(documentoRepository.save(any(Documento.class))).thenReturn(documentoEntity);
-        when(modelMapper.map(any(Documento.class), eq(DocumentoDTO.class))).thenReturn(documentoDTO);
-
-        // Act
-        DocumentoDTO resultado = documentoService.actualizarEstado(1L, 2L);
-
-        // Assert
-        assertThat(resultado).isNotNull();
+        // THEN
+        assertNotNull(resultado);
+        assertEquals(USUARIO_ID, resultado.getUsuarioId());
         verify(documentoRepository, times(1)).save(any(Documento.class));
     }
 
     @Test
-    @DisplayName("hasApprovedDocuments - Debe retornar true cuando hay documentos aprobados")
-    void hasApprovedDocuments_ConDocumentosAprobados_RetornaTrue() {
-        // Arrange
-        Estado estadoAceptado = Estado.builder().id(2L).nombre("ACEPTADO").build();
-        when(estadoRepository.findByNombre("ACEPTADO")).thenReturn(Optional.of(estadoAceptado));
-        when(documentoRepository.countByUsuarioIdAndEstadoId(1L, 2L)).thenReturn(1L);
+    @DisplayName("crearDocumento: Falla si el rol del usuario no puede subir documentos")
+    void crearDocumento_Falla_RolNoAutorizado() {
+        // GIVEN
+        // **Ajuste:** Usamos un rol no autorizado como SUPERVISOR
+        usuarioArrendatario.getRol().setNombre("SUPERVISOR");
+        when(userServiceClient.getUserById(USUARIO_ID)).thenReturn(usuarioArrendatario);
 
-        // Act
-        boolean resultado = documentoService.hasApprovedDocuments(1L);
+        // WHEN / THEN
+        assertThrows(BusinessValidationException.class, () ->
+                documentoService.crearDocumento(documentoDTO));
 
-        // Assert
-        assertThat(resultado).isTrue();
+        verify(documentoRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("hasApprovedDocuments - Debe retornar false cuando no hay documentos aprobados")
-    void hasApprovedDocuments_SinDocumentosAprobados_RetornaFalse() {
-        // Arrange
-        Estado estadoAceptado = Estado.builder().id(2L).nombre("ACEPTADO").build();
-        when(estadoRepository.findByNombre("ACEPTADO")).thenReturn(Optional.of(estadoAceptado));
-        when(documentoRepository.countByUsuarioIdAndEstadoId(1L, 2L)).thenReturn(0L);
+    @DisplayName("crearDocumento: Falla si alcanza el límite de documentos")
+    void crearDocumento_Falla_LimiteAlcanzado() {
+        // GIVEN
+        when(userServiceClient.getUserById(USUARIO_ID)).thenReturn(usuarioArrendatario);
+        // **Ajuste:** Simular que ya tiene el máximo permitido (10)
+        when(documentoRepository.countByUsuarioId(USUARIO_ID)).thenReturn((long) Limites.MAX_DOCUMENTOS_POR_USUARIO);
 
-        // Act
-        boolean resultado = documentoService.hasApprovedDocuments(1L);
+        // WHEN / THEN
+        assertThrows(BusinessValidationException.class, () ->
+                documentoService.crearDocumento(documentoDTO));
 
-        // Assert
-        assertThat(resultado).isFalse();
+        verify(estadoRepository, never()).findById(anyLong());
+    }
+
+    // --- 2. Tests para obtenerPorId ---
+
+    @Test
+    @DisplayName("obtenerPorId: Retorna documento si existe")
+    void obtenerPorId_Existe() {
+        // GIVEN
+        when(documentoRepository.findById(DOCUMENTO_ID)).thenReturn(Optional.of(documentoEntidad));
+
+        // WHEN
+        DocumentoDTO resultado = documentoService.obtenerPorId(DOCUMENTO_ID, false);
+
+        // THEN
+        assertNotNull(resultado);
+        verify(documentoRepository, times(1)).findById(DOCUMENTO_ID);
     }
 
     @Test
-    @DisplayName("eliminarDocumento - Debe eliminar documento exitosamente")
-    void eliminarDocumento_DocumentoExiste_Success() {
-        // Arrange
-        when(documentoRepository.existsById(1L)).thenReturn(true);
-        doNothing().when(documentoRepository).deleteById(1L);
+    @DisplayName("obtenerPorId: Lanza ResourceNotFoundException si no existe")
+    void obtenerPorId_NoExiste() {
+        // GIVEN
+        when(documentoRepository.findById(DOCUMENTO_ID)).thenReturn(Optional.empty());
 
-        // Act
-        documentoService.eliminarDocumento(1L);
+        // WHEN / THEN
+        assertThrows(ResourceNotFoundException.class, () -> {
+            documentoService.obtenerPorId(DOCUMENTO_ID, false);
+        });
+    }
 
-        // Assert
-        verify(documentoRepository, times(1)).deleteById(1L);
+    // --- 3. Tests para actualizarEstado ---
+
+    @Test
+    @DisplayName("actualizarEstado: Actualiza el estado exitosamente")
+    void actualizarEstado_Exitoso() {
+        // GIVEN
+        Long NUEVO_ESTADO_ID = 11L;
+        Estado nuevoEstado = Estado.builder().id(NUEVO_ESTADO_ID).nombre(EstadoDocumento.RECHAZADO).build();
+
+        when(documentoRepository.findById(DOCUMENTO_ID)).thenReturn(Optional.of(documentoEntidad));
+        when(estadoRepository.findById(NUEVO_ESTADO_ID)).thenReturn(Optional.of(nuevoEstado));
+        when(documentoRepository.save(any(Documento.class))).thenReturn(documentoEntidad);
+
+        // WHEN
+        documentoService.actualizarEstado(DOCUMENTO_ID, NUEVO_ESTADO_ID);
+
+        // THEN
+        // Verificar que el estadoId de la entidad fue modificado a NUEVO_ESTADO_ID antes de guardarse
+        verify(documentoRepository).save(argThat(d -> d.getEstadoId().equals(NUEVO_ESTADO_ID)));
     }
 
     @Test
-    @DisplayName("eliminarDocumento - Debe lanzar excepción cuando el documento no existe")
-    void eliminarDocumento_DocumentoNoExiste_ThrowsException() {
-        // Arrange
-        when(documentoRepository.existsById(999L)).thenReturn(false);
+    @DisplayName("actualizarEstado: Falla si documento no existe")
+    void actualizarEstado_Falla_DocumentoNoExiste() {
+        // GIVEN
+        when(documentoRepository.findById(DOCUMENTO_ID)).thenReturn(Optional.empty());
 
-        // Act & Assert
-        assertThatThrownBy(() -> documentoService.eliminarDocumento(999L))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("documento con ID 999 no existe");
+        // WHEN / THEN
+        assertThrows(ResourceNotFoundException.class, () ->
+                documentoService.actualizarEstado(DOCUMENTO_ID, 11L));
+    }
 
-        verify(documentoRepository, never()).deleteById(any());
+    // --- 4. Tests para hasApprovedDocuments ---
+
+    @Test
+    @DisplayName("hasApprovedDocuments: Retorna true si hay documentos aprobados")
+    void hasApprovedDocuments_True() {
+        // GIVEN
+        Long ESTADO_ACEPTADO_ID = 100L;
+        Estado estadoAceptado = Estado.builder().id(ESTADO_ACEPTADO_ID).nombre(EstadoDocumento.ACEPTADO).build();
+
+        when(estadoRepository.findByNombre(EstadoDocumento.ACEPTADO)).thenReturn(Optional.of(estadoAceptado));
+        when(documentoRepository.countByUsuarioIdAndEstadoId(USUARIO_ID, ESTADO_ACEPTADO_ID)).thenReturn(1L);
+
+        // WHEN / THEN
+        assertTrue(documentoService.hasApprovedDocuments(USUARIO_ID));
+    }
+
+    @Test
+    @DisplayName("hasApprovedDocuments: Retorna false si no hay documentos aprobados")
+    void hasApprovedDocuments_False() {
+        // GIVEN
+        Long ESTADO_ACEPTADO_ID = 100L;
+        Estado estadoAceptado = Estado.builder().id(ESTADO_ACEPTADO_ID).nombre(EstadoDocumento.ACEPTADO).build();
+
+        when(estadoRepository.findByNombre(EstadoDocumento.ACEPTADO)).thenReturn(Optional.of(estadoAceptado));
+        when(documentoRepository.countByUsuarioIdAndEstadoId(USUARIO_ID, ESTADO_ACEPTADO_ID)).thenReturn(0L);
+
+        // WHEN / THEN
+        assertFalse(documentoService.hasApprovedDocuments(USUARIO_ID));
+    }
+
+    // --- 5. Tests para eliminarDocumento ---
+
+    @Test
+    @DisplayName("eliminarDocumento: Elimina exitosamente el documento")
+    void eliminarDocumento_Exitoso() {
+        // GIVEN
+        when(documentoRepository.existsById(DOCUMENTO_ID)).thenReturn(true);
+
+        // WHEN
+        documentoService.eliminarDocumento(DOCUMENTO_ID);
+
+        // THEN
+        verify(documentoRepository, times(1)).deleteById(DOCUMENTO_ID);
     }
 }

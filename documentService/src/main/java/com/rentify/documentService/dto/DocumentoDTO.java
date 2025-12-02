@@ -22,7 +22,7 @@ import java.util.Date;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @Schema(description = "Datos de un documento de usuario")
 public class DocumentoDTO {
 
