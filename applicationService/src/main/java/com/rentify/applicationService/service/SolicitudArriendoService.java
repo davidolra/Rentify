@@ -108,7 +108,9 @@ public class SolicitudArriendoService {
         }
 
         // 8. Crear la solicitud
-        SolicitudArriendo solicitud = modelMapper.map(solicitudDTO, SolicitudArriendo.class);
+        SolicitudArriendo solicitud = new SolicitudArriendo();
+        solicitud.setUsuarioId(solicitudDTO.getUsuarioId());
+        solicitud.setPropiedadId(solicitudDTO.getPropiedadId());
         solicitud.setEstado(EstadoSolicitud.PENDIENTE);
         solicitud.setFechaSolicitud(new Date());
 

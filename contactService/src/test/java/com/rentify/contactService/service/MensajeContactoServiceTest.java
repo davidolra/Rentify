@@ -351,5 +351,99 @@
 //        assertThat(estadisticas).containsEntry("pendientes", 3L);
 //        assertThat(estadisticas).containsEntry("enProceso", 2L);
 //        assertThat(estadisticas).containsEntry("resueltos", 5L);
-//    }
-//}
+package com.rentify.contactService.service;
+
+import com.rentify.contactService.client.UserServiceClient;
+import com.rentify.contactService.dto.MensajeContactoDTO;
+import com.rentify.contactService.dto.external.UsuarioDTO;
+import com.rentify.contactService.exception.BusinessValidationException;
+import com.rentify.contactService.model.MensajeContacto;
+import com.rentify.contactService.repository.MensajeContactoRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+import org.modelmapper.ModelMapper;
+
+import java.util.Date;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class MensajeContactoServiceTest {
+
+    @Mock
+    private MensajeContactoRepository repository;
+
+    @Mock
+    private UserServiceClient userServiceClient;
+
+    @Mock
+    private ModelMapper modelMapper;
+
+    @InjectMocks
+    private MensajeContactoService service;
+
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    void crearMensaje_deberiaCrearMensajeCorrectamente() {
+
+        // --- Datos de entrada ---
+        MensajeContactoDTO inputDto = new MensajeContactoDTO();
+        inputDto.setNombre("Fernanda");
+        inputDto.setEmail("fer@test.com");
+        inputDto.setAsunto("Consulta");
+        inputDto.setMensaje("Esto es un mensaje válido de prueba");
+        inputDto.setUsuarioId(1L);
+
+        // Simulación de user existente
+        UsuarioDTO usuario = new UsuarioDTO();
+        usuario.setId(1L);
+        when(userServiceClient.getUserById(1L)).thenReturn(usuario);
+
+        // No tiene mensajes pendientes
+        when(repository.countByUsuarioIdAndEstado(eq(1L), anyString()))
+                .thenReturn(0L);
+
+        // Mapeo DTO → Entity
+        MensajeContacto entidad = new MensajeContacto();
+        entidad.setId(10L);
+        entidad.setNombre("Fernanda");
+        entidad.setEmail("fer@test.com");
+        entidad.setAsunto("Consulta");
+        entidad.setMensaje("Esto es un mensaje válido de prueba");
+        entidad.setEstado("PENDIENTE");
+        entidad.setFechaCreacion(new Date());
+
+        when(modelMapper.map(inputDto, MensajeContacto.class)).thenReturn(entidad);
+        when(repository.save(any(MensajeContacto.class))).thenReturn(entidad);
+
+        // Mapeo final Entity → DTO
+        when(modelMapper.map(entidad, MensajeContactoDTO.class))
+                .thenReturn(inputDto);
+
+        // --- Ejecutar ---
+        MensajeContactoDTO resultado = service.crearMensaje(inputDto);
+
+        // --- Verificaciones ---
+        assertNotNull(resultado);
+        verify(repository).save(any(MensajeContacto.class));
+        verify(userServiceClient).getUserById(1L);
+    }
+
+    @Test
+    void crearMensaje_mensajeMuyCorto_deberiaLanzarExcepcion() {
+        MensajeContactoDTO dto = new MensajeContactoDTO();
+        dto.setNombre("Fer");
+        dto.setEmail("fer@test.com");
+        dto.setAsunto("Test");
+        dto.setMensaje("a"); // muy corto
+
+        assertThrows(BusinessValidationException.class, () -> {
+            service.crearMensaje(dto);
+        });
+    }
+}
