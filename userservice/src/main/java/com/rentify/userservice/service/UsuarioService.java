@@ -29,7 +29,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class UsuarioService {
+public class
+UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final RolService rolService;
