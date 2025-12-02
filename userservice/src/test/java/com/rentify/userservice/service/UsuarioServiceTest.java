@@ -13,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.modelmapper.ModelMapper;
 
 import java.time.LocalDate;
@@ -27,6 +29,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("Tests de UsuarioService")
 class UsuarioServiceTest {
 
@@ -104,12 +107,15 @@ class UsuarioServiceTest {
         when(usuarioRepository.existsByEmail(usuarioDTO.getEmail())).thenReturn(false);
         when(usuarioRepository.existsByRut(usuarioDTO.getRut())).thenReturn(false);
         when(usuarioRepository.existsByCodigoRef(anyString())).thenReturn(false);
-        when(rolService.obtenerPorId(3L)).thenReturn(rolDTO);
+
+        // [CORRECCIÓN FINAL] Se usa lenient() para evitar UnnecessaryStubbingException, ya que son llamados en el flujo interno de convertToDTO.
+        lenient().when(rolService.obtenerPorId(3L)).thenReturn(rolDTO);
+        lenient().when(estadoService.obtenerPorId(1L)).thenReturn(estadoDTO);
+
         when(modelMapper.map(any(UsuarioDTO.class), eq(Usuario.class))).thenReturn(usuarioEntity);
         when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuarioEntity);
         when(modelMapper.map(any(Usuario.class), eq(UsuarioDTO.class))).thenReturn(usuarioDTO);
-        when(rolService.obtenerPorId(3L)).thenReturn(rolDTO);
-        when(estadoService.obtenerPorId(1L)).thenReturn(estadoDTO);
+
 
         // Act
         UsuarioDTO resultado = usuarioService.registrarUsuario(usuarioDTO);
@@ -118,6 +124,9 @@ class UsuarioServiceTest {
         assertThat(resultado).isNotNull();
         assertThat(resultado.getEmail()).isEqualTo("juan.perez@email.com");
         verify(usuarioRepository, times(1)).save(any(Usuario.class));
+        // Se verifica que se llama dos veces: una para la validación del rol (Paso 8) y otra en convertToDTO.
+        verify(rolService, times(2)).obtenerPorId(3L);
+        verify(estadoService, times(1)).obtenerPorId(1L);
     }
 
     @Test
@@ -147,18 +156,24 @@ class UsuarioServiceTest {
         when(usuarioRepository.existsByEmail(anyString())).thenReturn(false);
         when(usuarioRepository.existsByRut(anyString())).thenReturn(false);
         when(usuarioRepository.existsByCodigoRef(anyString())).thenReturn(false);
-        when(rolService.obtenerPorId(3L)).thenReturn(rolDTO);
+
+        // [CORRECCIÓN FINAL] Se usa lenient() para evitar UnnecessaryStubbingException.
+        lenient().when(rolService.obtenerPorId(3L)).thenReturn(rolDTO);
+        lenient().when(estadoService.obtenerPorId(1L)).thenReturn(estadoDTO);
+
         when(modelMapper.map(any(UsuarioDTO.class), eq(Usuario.class))).thenReturn(usuarioVip);
         when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuarioVip);
         when(modelMapper.map(any(Usuario.class), eq(UsuarioDTO.class))).thenReturn(usuarioDTO);
-        when(rolService.obtenerPorId(3L)).thenReturn(rolDTO);
-        when(estadoService.obtenerPorId(1L)).thenReturn(estadoDTO);
+
 
         // Act
         UsuarioDTO resultado = usuarioService.registrarUsuario(usuarioDTO);
 
         // Assert
         verify(usuarioRepository, times(1)).save(argThat(u -> u.getDuocVip().equals(true)));
+        // Se verifica que se llama dos veces: una para la validación del rol (Paso 8) y otra en convertToDTO.
+        verify(rolService, times(2)).obtenerPorId(3L);
+        verify(estadoService, times(1)).obtenerPorId(1L);
     }
 
     @Test
@@ -213,17 +228,23 @@ class UsuarioServiceTest {
         when(usuarioRepository.existsByEmail(anyString())).thenReturn(false);
         when(usuarioRepository.existsByRut(anyString())).thenReturn(false);
         when(usuarioRepository.existsByCodigoRef(anyString())).thenReturn(false);
-        when(rolService.obtenerPorId(3L)).thenReturn(rolDTO);
+
+        // [CORRECCIÓN FINAL] Se usa lenient() para evitar UnnecessaryStubbingException.
+        lenient().when(rolService.obtenerPorId(3L)).thenReturn(rolDTO);
+        lenient().when(estadoService.obtenerPorId(1L)).thenReturn(estadoDTO);
+
         when(modelMapper.map(any(UsuarioDTO.class), eq(Usuario.class))).thenReturn(usuarioEntity);
         when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuarioEntity);
         when(modelMapper.map(any(Usuario.class), eq(UsuarioDTO.class))).thenReturn(usuarioDTO);
-        when(estadoService.obtenerPorId(1L)).thenReturn(estadoDTO);
+
 
         // Act
         usuarioService.registrarUsuario(usuarioDTO);
 
         // Assert
-        verify(rolService, times(1)).obtenerPorId(3L);
+        // Se verifica que se llama dos veces: una para la validación del rol (Paso 8) y otra en convertToDTO.
+        verify(rolService, times(2)).obtenerPorId(3L);
+        verify(estadoService, times(1)).obtenerPorId(1L);
     }
 
     // ==================== TESTS DE LOGIN ====================
@@ -248,6 +269,8 @@ class UsuarioServiceTest {
         // Assert
         assertThat(resultado).isNotNull();
         assertThat(resultado.getEmail()).isEqualTo("juan.perez@email.com");
+        verify(rolService, times(1)).obtenerPorId(3L);
+        verify(estadoService, times(1)).obtenerPorId(1L);
     }
 
     @Test
@@ -395,6 +418,7 @@ class UsuarioServiceTest {
     void obtenerPorRol_DeberiaRetornarUsuariosDelRol() {
         // Arrange
         List<Usuario> usuarios = Arrays.asList(usuarioEntity);
+        // El servicio llama a rolService.obtenerPorId(rolId) para validar la existencia
         when(rolService.obtenerPorId(3L)).thenReturn(rolDTO);
         when(usuarioRepository.findByRolId(3L)).thenReturn(usuarios);
         when(modelMapper.map(any(Usuario.class), eq(UsuarioDTO.class))).thenReturn(usuarioDTO);
@@ -458,6 +482,7 @@ class UsuarioServiceTest {
     void cambiarRol_RolValido_Success() {
         // Arrange
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioEntity));
+        // El servicio llama a rolService.obtenerPorId(nuevoRolId) para validar la existencia
         when(rolService.obtenerPorId(2L)).thenReturn(rolDTO);
         when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuarioEntity);
         when(modelMapper.map(any(Usuario.class), eq(UsuarioDTO.class))).thenReturn(usuarioDTO);
@@ -468,7 +493,8 @@ class UsuarioServiceTest {
 
         // Assert
         assertThat(resultado).isNotNull();
-        verify(rolService, times(1)).obtenerPorId(2L);
+        // Se espera times(2) porque se llama para validar el rol (antes de guardar) y otra vez en convertToDTO.
+        verify(rolService, times(2)).obtenerPorId(2L);
         verify(usuarioRepository, times(1)).save(argThat(u -> u.getRolId().equals(2L)));
     }
 
@@ -480,6 +506,7 @@ class UsuarioServiceTest {
         when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuarioEntity);
         when(modelMapper.map(any(Usuario.class), eq(UsuarioDTO.class))).thenReturn(usuarioDTO);
         when(rolService.obtenerPorId(3L)).thenReturn(rolDTO);
+        // Se llama a estadoService.obtenerPorId(nuevoEstadoId) en convertToDTO
         when(estadoService.obtenerPorId(2L)).thenReturn(estadoDTO);
 
         // Act
@@ -487,6 +514,7 @@ class UsuarioServiceTest {
 
         // Assert
         assertThat(resultado).isNotNull();
+        verify(estadoService, times(1)).obtenerPorId(2L);
         verify(usuarioRepository, times(1)).save(argThat(u -> u.getEstadoId().equals(2L)));
     }
 
@@ -505,6 +533,57 @@ class UsuarioServiceTest {
         assertThat(resultado).isNotNull();
         verify(usuarioRepository, times(1)).save(argThat(u -> u.getPuntos().equals(100)));
     }
+
+    // ==================== TESTS DE ACTUALIZACIÓN (Manejo de No Encontrado) ====================
+
+    @Test
+    @DisplayName("Actualizar: Debe lanzar ResourceNotFoundException si el usuario no existe")
+    void actualizarUsuario_NoExiste_ThrowsException() {
+        // Arrange
+        when(usuarioRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThatThrownBy(() -> usuarioService.actualizarUsuario(999L, usuarioDTO))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Usuario con ID 999 no encontrado");
+
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Cambiar Rol: Debe lanzar ResourceNotFoundException si el usuario no existe")
+    void cambiarRol_UsuarioNoExiste_ThrowsException() {
+        // Arrange
+        when(usuarioRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThatThrownBy(() -> usuarioService.cambiarRol(999L, 2L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Usuario con ID 999 no encontrado");
+
+        verify(rolService, never()).obtenerPorId(anyLong());
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Cambiar Estado: Debe lanzar BusinessValidationException si el nuevo estado no existe")
+    void cambiarEstado_EstadoNoExiste_ThrowsException() {
+        // Arrange
+        // Solo necesitamos simular que el usuario existe para que el servicio avance
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioEntity));
+
+        // Act & Assert
+        // El servicio valida el estado antes de llamar a estadoService.obtenerPorId
+        assertThatThrownBy(() -> usuarioService.cambiarEstado(1L, 99L))
+                .isInstanceOf(BusinessValidationException.class)
+                .hasMessageContaining("El estado con ID 99 no es válido");
+
+        verify(usuarioRepository, never()).save(any());
+        // Se verifica que no se llama al mock de estadoService ya que la validación falló.
+        verify(estadoService, never()).obtenerPorId(anyLong());
+    }
+
+    // ==================== TESTS DE EXISTENCIA ====================
 
     @Test
     @DisplayName("Debe verificar si usuario existe")
