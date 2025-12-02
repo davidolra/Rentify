@@ -14,7 +14,7 @@ import org.springframework.test.context.ActiveProfiles
 @DataJpaTest
 @ActiveProfiles("test")
 @DisplayName("Tests de EstadoRepository")
-internal class EstadoRepositoryTest {
+internal open class EstadoRepositoryTest {
     @Autowired
     private val entityManager: TestEntityManager? = null
 
