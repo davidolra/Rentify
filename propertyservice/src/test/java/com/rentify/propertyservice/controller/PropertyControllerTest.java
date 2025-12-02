@@ -290,26 +290,46 @@ class PropertyControllerTest {
     @Test
     @DisplayName("GET /api/propiedades/buscar - Debe retornar propiedades con filtros")
     void buscarConFiltros_ConFiltros_Returns200() throws Exception {
-        // Arrange
+
         when(propertyService.buscarConFiltros(
-                anyLong(), anyLong(), any(BigDecimal.class), any(BigDecimal.class),
-                anyInt(), anyInt(), anyBoolean(), anyBoolean()))
+                // Argumentos 0 (tipoId), 1 (comunaId)
+                anyLong(),
+                nullable(Long.class),
+
+                // Argumentos 2 (minPrecio), 3 (maxPrecio)
+                any(BigDecimal.class),
+                any(BigDecimal.class),
+
+                // Argumentos 4 (nHabit), 5 (nBanos)
+                nullable(Integer.class),
+                nullable(Integer.class),
+
+                // Argumentos 6 (petFriendly), 7 (includeDetails)
+                nullable(Boolean.class),
+                anyBoolean()))
                 .thenReturn(List.of(propertyDTO));
 
-        // Act & Assert
+
+
         mockMvc.perform(get("/api/propiedades/buscar")
-                        .param("comunaId", "1")
-                        .param("minPrecio", "600000")
-                        .param("maxPrecio", "700000")
+                        .param("comunaId", "1") // Corresponde al 1er Long o 2do Long en la firma? ASUMIMOS el 2do Long (comunaId)
+                        .param("minPrecio", "600000") // Mapeado a BigDecimal
+                        .param("maxPrecio", "700000") // Mapeado a BigDecimal
                         .param("includeDetails", "false"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
 
+        // Verificamos la llamada con los matchers corregidos
         verify(propertyService, times(1)).buscarConFiltros(
-                anyLong(), anyLong(), any(BigDecimal.class), any(BigDecimal.class),
-                anyInt(), anyInt(), anyBoolean(), anyBoolean());
+                nullable(Long.class), // TipoId (no se envió, debe ser null)
+                eq(1L),               // ComunaId (se envió "1")
+                any(BigDecimal.class), // minPrecio
+                any(BigDecimal.class), // maxPrecio
+                nullable(Integer.class), // nHabit (no se envió, debe ser null)
+                nullable(Integer.class), // nBanos (no se envió, debe ser null)
+                nullable(Boolean.class), // petFriendly (no se envió, debe ser null)
+                eq(false)); // includeDetails (se envió "false")
     }
-
     // ==================== Tests GET/{id}/existe ====================
 
     @Test

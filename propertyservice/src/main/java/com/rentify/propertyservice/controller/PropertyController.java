@@ -215,7 +215,7 @@ public class PropertyController {
         log.debug("Endpoint GET /api/propiedades/buscar - Búsqueda con filtros");
 
         List<PropertyDTO> propiedades = propertyService.buscarConFiltros(
-                comunaId, tipoId, minPrecio, maxPrecio, nHabit, nBanos, petFriendly, includeDetails
+                tipoId, comunaId, minPrecio, maxPrecio, nHabit, nBanos, petFriendly, includeDetails
         );
 
         return ResponseEntity.ok(propiedades);
