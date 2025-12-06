@@ -4,102 +4,86 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
-import java.time.LocalDate;
-
+/**
+ * DTO para registro y consulta de usuarios
+ * MODIFICADO: snombre ahora es OPCIONAL
+ * Las fechas se manejan como String en formato "yyyy-MM-dd"
+ */
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Schema(description = "Datos de un usuario del sistema Rentify")
+@Schema(description = "Datos del usuario")
 public class UsuarioDTO {
 
-    @Schema(description = "ID único del usuario",
-            example = "1",
-            accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "ID único del usuario", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
     private Long id;
 
     @NotBlank(message = "El primer nombre es obligatorio")
-    @Size(max = 60, message = "El primer nombre no puede exceder 60 caracteres")
+    @Size(min = 2, max = 50, message = "El primer nombre debe tener entre 2 y 50 caracteres")
     @Schema(description = "Primer nombre del usuario", example = "Juan")
     private String pnombre;
 
-    @NotBlank(message = "El segundo nombre es obligatorio")
-    @Size(max = 60, message = "El segundo nombre no puede exceder 60 caracteres")
-    @Schema(description = "Segundo nombre del usuario", example = "Carlos")
+    // MODIFICADO: Segundo nombre ahora es OPCIONAL (sin @NotBlank)
+    @Size(max = 50, message = "El segundo nombre no puede exceder 50 caracteres")
+    @Schema(description = "Segundo nombre del usuario (opcional)", example = "Carlos")
     private String snombre;
 
     @NotBlank(message = "El apellido paterno es obligatorio")
-    @Size(max = 60, message = "El apellido no puede exceder 60 caracteres")
-    @Schema(description = "Apellido paterno", example = "Pérez")
+    @Size(min = 2, max = 50, message = "El apellido debe tener entre 2 y 50 caracteres")
+    @Schema(description = "Apellido paterno del usuario", example = "Pérez")
     private String papellido;
 
-    @NotNull(message = "La fecha de nacimiento es obligatoria")
-    @Past(message = "La fecha de nacimiento debe ser en el pasado")
-    @Schema(description = "Fecha de nacimiento", example = "1995-05-15")
-    private LocalDate fnacimiento;
+    @NotBlank(message = "La fecha de nacimiento es obligatoria")
+    @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "Formato de fecha inválido. Use yyyy-MM-dd")
+    @Schema(description = "Fecha de nacimiento en formato yyyy-MM-dd", example = "1995-05-15")
+    private String fnacimiento;
 
     @NotBlank(message = "El email es obligatorio")
-    @Email(message = "El formato del email no es válido")
-    @Size(max = 200)
+    @Email(message = "El formato del email es inválido")
     @Schema(description = "Correo electrónico", example = "juan.perez@email.com")
     private String email;
 
     @NotBlank(message = "El RUT es obligatorio")
-    @Pattern(regexp = "^\\d{7,8}-[\\dkK]$", message = "Formato de RUT inválido (ej: 12345678-9)")
-    @Schema(description = "RUT chileno", example = "12345678-9")
+    @Schema(description = "RUT del usuario", example = "12345678-9")
     private String rut;
 
     @NotBlank(message = "El teléfono es obligatorio")
-    @Size(min = 9, max = 12, message = "El teléfono debe tener entre 9 y 12 caracteres")
-    @Schema(description = "Número de teléfono", example = "987654321")
+    @Size(min = 8, max = 15, message = "El teléfono debe tener entre 8 y 15 caracteres")
+    @Schema(description = "Número de teléfono", example = "+56912345678")
     private String ntelefono;
-
-    @Schema(description = "Indica si el usuario tiene beneficio DUOC (20% descuento)",
-            example = "false",
-            accessMode = Schema.AccessMode.READ_ONLY)
-    private Boolean duocVip;
 
     @NotBlank(message = "La contraseña es obligatoria")
     @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
-    @Schema(description = "Contraseña del usuario (mínimo 8 caracteres)", example = "password123")
+    @Schema(description = "Contraseña del usuario")
     private String clave;
 
-    @Schema(description = "Puntos RentifyPoints acumulados",
-            example = "0",
-            accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Indica si es usuario VIP de DUOC", example = "false", accessMode = Schema.AccessMode.READ_ONLY)
+    private Boolean duocVip;
+
+    @Schema(description = "Puntos RentifyPoints acumulados", example = "0", accessMode = Schema.AccessMode.READ_ONLY)
     private Integer puntos;
 
-    @Schema(description = "Código de referido único para el programa de referidos",
-            example = "ABC123XYZ",
-            accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Código de referido único", example = "ABC123XY", accessMode = Schema.AccessMode.READ_ONLY)
     private String codigoRef;
 
-    @Schema(description = "Fecha de creación de la cuenta",
-            example = "2025-01-15",
-            accessMode = Schema.AccessMode.READ_ONLY)
-    private LocalDate fcreacion;
+    @Schema(description = "Fecha de creación en formato yyyy-MM-dd", accessMode = Schema.AccessMode.READ_ONLY)
+    private String fcreacion;
 
-    @Schema(description = "Fecha de última actualización",
-            example = "2025-01-15",
-            accessMode = Schema.AccessMode.READ_ONLY)
-    private LocalDate factualizacion;
+    @Schema(description = "Fecha de última actualización en formato yyyy-MM-dd", accessMode = Schema.AccessMode.READ_ONLY)
+    private String factualizacion;
 
-    @NotNull(message = "El estado es obligatorio")
-    @Schema(description = "ID del estado del usuario (1=ACTIVO, 2=INACTIVO, 3=SUSPENDIDO)",
-            example = "1")
+    @Schema(description = "ID del estado del usuario", example = "1")
     private Long estadoId;
 
-    @Schema(description = "ID del rol asignado (1=ADMIN, 2=PROPIETARIO, 3=ARRIENDATARIO)",
-            example = "3")
+    @Schema(description = "ID del rol del usuario", example = "3")
     private Long rolId;
 
-    // Campos opcionales para incluir en respuestas con includeDetails=true
-    @Schema(description = "Información del rol del usuario",
-            accessMode = Schema.AccessMode.READ_ONLY)
+    // Campos expandidos (cuando includeDetails=true)
+    @Schema(description = "Información del rol", accessMode = Schema.AccessMode.READ_ONLY)
     private RolDTO rol;
 
-    @Schema(description = "Información del estado del usuario",
-            accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Información del estado", accessMode = Schema.AccessMode.READ_ONLY)
     private EstadoDTO estado;
 }

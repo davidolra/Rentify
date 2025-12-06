@@ -1,6 +1,7 @@
 package com.rentify.userservice.controller;
 
 import com.rentify.userservice.dto.UsuarioDTO;
+import com.rentify.userservice.dto.UsuarioUpdateDTO;
 import com.rentify.userservice.dto.LoginDTO;
 import com.rentify.userservice.dto.LoginResponseDTO;
 import com.rentify.userservice.service.UsuarioService;
@@ -16,13 +17,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Controller para gestión de usuarios
+ * Controller para gestion de usuarios
  * Endpoints: POST /api/usuarios, GET /api/usuarios, GET /api/usuarios/{id}, etc.
  */
 @RestController
 @RequestMapping("/api/usuarios")
 @RequiredArgsConstructor
-@Tag(name = "Usuarios", description = "Gestión de usuarios del sistema Rentify")
+@Tag(name = "Usuarios", description = "Gestion de usuarios del sistema Rentify")
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
@@ -33,7 +34,7 @@ public class UsuarioController {
      */
     @PostMapping
     @Operation(summary = "Registrar nuevo usuario",
-            description = "Registra un nuevo usuario en el sistema. Solo mayores de 18 años. " +
+            description = "Registra un nuevo usuario en el sistema. Solo mayores de 18 anos. " +
                     "Los usuarios con email @duoc.cl obtienen beneficio VIP (20% descuento)")
     public ResponseEntity<UsuarioDTO> registrarUsuario(
             @Valid @RequestBody UsuarioDTO usuarioDTO) {
@@ -47,7 +48,7 @@ public class UsuarioController {
      */
     @PostMapping("/login")
     @Operation(summary = "Login de usuario",
-            description = "Autentica un usuario con email y contraseña")
+            description = "Autentica un usuario con email y contrasena")
     public ResponseEntity<LoginResponseDTO> login(
             @Valid @RequestBody LoginDTO loginDTO) {
         UsuarioDTO usuario = usuarioService.login(loginDTO);
@@ -77,7 +78,7 @@ public class UsuarioController {
      */
     @GetMapping("/{id}")
     @Operation(summary = "Obtener usuario por ID",
-            description = "Obtiene un usuario específico por su ID")
+            description = "Obtiene un usuario especifico por su ID")
     public ResponseEntity<UsuarioDTO> obtenerPorId(
             @Parameter(description = "ID del usuario", example = "1")
             @PathVariable Long id,
@@ -91,7 +92,7 @@ public class UsuarioController {
      */
     @GetMapping("/email/{email}")
     @Operation(summary = "Obtener usuario por email",
-            description = "Obtiene un usuario específico por su correo electrónico")
+            description = "Obtiene un usuario especifico por su correo electronico")
     public ResponseEntity<UsuarioDTO> obtenerPorEmail(
             @Parameter(description = "Email del usuario", example = "juan.perez@email.com")
             @PathVariable String email,
@@ -105,7 +106,7 @@ public class UsuarioController {
      */
     @GetMapping("/rol/{rolId}")
     @Operation(summary = "Obtener usuarios por rol",
-            description = "Obtiene todos los usuarios con un rol específico")
+            description = "Obtiene todos los usuarios con un rol especifico")
     public ResponseEntity<List<UsuarioDTO>> obtenerPorRol(
             @Parameter(description = "ID del rol (1=ADMIN, 2=PROPIETARIO, 3=ARRIENDATARIO)", example = "3")
             @PathVariable Long rolId,
@@ -126,16 +127,16 @@ public class UsuarioController {
     }
 
     /**
-     * Actualiza los datos de un usuario
+     * Actualiza los datos de un usuario (version admin - campos parciales)
      * PUT /api/usuarios/{id}
      */
     @PutMapping("/{id}")
     @Operation(summary = "Actualizar usuario",
-            description = "Actualiza los datos personales de un usuario")
+            description = "Actualiza los datos de un usuario. Permite cambiar nombre, email, telefono, rol y estado.")
     public ResponseEntity<UsuarioDTO> actualizarUsuario(
             @PathVariable Long id,
-            @Valid @RequestBody UsuarioDTO usuarioDTO) {
-        return ResponseEntity.ok(usuarioService.actualizarUsuario(id, usuarioDTO));
+            @Valid @RequestBody UsuarioUpdateDTO updateDTO) {
+        return ResponseEntity.ok(usuarioService.actualizarUsuarioAdmin(id, updateDTO));
     }
 
     /**
@@ -172,7 +173,7 @@ public class UsuarioController {
      */
     @PatchMapping("/{id}/puntos")
     @Operation(summary = "Agregar puntos RentifyPoints",
-            description = "Agrega puntos al programa de fidelización del usuario")
+            description = "Agrega puntos al programa de fidelizacion del usuario")
     public ResponseEntity<UsuarioDTO> agregarPuntos(
             @PathVariable Long id,
             @Parameter(description = "Cantidad de puntos a agregar", example = "100")
