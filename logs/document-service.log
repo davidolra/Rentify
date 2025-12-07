@@ -366,3 +366,268 @@ Caused by: java.net.ConnectException: Connection refused: no further information
 2025-12-06 20:37:20 [http-nio-8083-exec-1] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json, application/yaml]
 2025-12-06 20:37:20 [http-nio-8083-exec-1] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [false]
 2025-12-06 20:37:20 [http-nio-8083-exec-1] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-12-06 21:36:40 [http-nio-8083-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/documentos?includeDetails=true", parameters={masked}
+2025-12-06 21:36:40 [http-nio-8083-exec-3] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.rentify.documentService.controller.DocumentoController#listarTodos(boolean)
+2025-12-06 21:36:40 [http-nio-8083-exec-3] DEBUG c.r.d.service.DocumentoService - Listando todos los documentos (includeDetails: true)
+2025-12-06 21:36:40 [http-nio-8083-exec-3] DEBUG org.hibernate.SQL - 
+    select
+        d1_0.id,
+        d1_0.estado_id,
+        d1_0.f_subido,
+        d1_0.nombre,
+        d1_0.tipo_doc_id,
+        d1_0.usuarios_id 
+    from
+        documentos d1_0
+2025-12-06 21:36:41 [http-nio-8083-exec-3] DEBUG org.hibernate.SQL - 
+    select
+        e1_0.id,
+        e1_0.nombre 
+    from
+        estado e1_0 
+    where
+        e1_0.id=?
+2025-12-06 21:36:41 [http-nio-8083-exec-3] DEBUG org.hibernate.SQL - 
+    select
+        td1_0.id,
+        td1_0.nombre 
+    from
+        tipo_doc td1_0 
+    where
+        td1_0.id=?
+2025-12-06 21:36:41 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 1 en URL: http://localhost:8081
+2025-12-06 21:36:41 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [64bfa539] HTTP GET http://localhost:8081/api/usuarios/1
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [64bfa539] [0c3d243b-1] Response 200 OK
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [64bfa539] [0c3d243b-1] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@7aeebb99]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Usuario 1 encontrado: David Olave
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG org.hibernate.SQL - 
+    select
+        td1_0.id,
+        td1_0.nombre 
+    from
+        tipo_doc td1_0 
+    where
+        td1_0.id=?
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 1 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [125ba14c] HTTP GET http://localhost:8081/api/usuarios/1
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [125ba14c] [0c3d243b-2] Response 200 OK
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [125ba14c] [0c3d243b-2] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@3bbea07a]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Usuario 1 encontrado: David Olave
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG org.hibernate.SQL - 
+    select
+        td1_0.id,
+        td1_0.nombre 
+    from
+        tipo_doc td1_0 
+    where
+        td1_0.id=?
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 1 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [4a1e6167] HTTP GET http://localhost:8081/api/usuarios/1
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [4a1e6167] [0c3d243b-3] Response 200 OK
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [4a1e6167] [0c3d243b-3] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@7d13ef91]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Usuario 1 encontrado: David Olave
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 2 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [3625e0fa] HTTP GET http://localhost:8081/api/usuarios/2
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [3625e0fa] [0c3d243b-4] Response 200 OK
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [3625e0fa] [0c3d243b-4] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@3e86a0d2]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Usuario 2 encontrado: Fernanda Gonzalez
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG org.hibernate.SQL - 
+    select
+        td1_0.id,
+        td1_0.nombre 
+    from
+        tipo_doc td1_0 
+    where
+        td1_0.id=?
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 2 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [58df4d52] HTTP GET http://localhost:8081/api/usuarios/2
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [58df4d52] [0c3d243b-5] Response 200 OK
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [58df4d52] [0c3d243b-5] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@3374bd31]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Usuario 2 encontrado: Fernanda Gonzalez
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 3 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [2cd50070] HTTP GET http://localhost:8081/api/usuarios/3
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [2cd50070] [0c3d243b-6] Response 200 OK
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [2cd50070] [0c3d243b-6] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@48096507]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Usuario 3 encontrado: Juans Pérez
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 3 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [274ca462] HTTP GET http://localhost:8081/api/usuarios/3
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [274ca462] [0c3d243b-7] Response 200 OK
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [274ca462] [0c3d243b-7] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@60b463e0]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Usuario 3 encontrado: Juans Pérez
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG org.hibernate.SQL - 
+    select
+        e1_0.id,
+        e1_0.nombre 
+    from
+        estado e1_0 
+    where
+        e1_0.id=?
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG org.hibernate.SQL - 
+    select
+        td1_0.id,
+        td1_0.nombre 
+    from
+        tipo_doc td1_0 
+    where
+        td1_0.id=?
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 3 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [48949e8b] HTTP GET http://localhost:8081/api/usuarios/3
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [48949e8b] [0c3d243b-8] Response 200 OK
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [48949e8b] [0c3d243b-8] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@7e476e1a]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Usuario 3 encontrado: Juans Pérez
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG org.hibernate.SQL - 
+    select
+        e1_0.id,
+        e1_0.nombre 
+    from
+        estado e1_0 
+    where
+        e1_0.id=?
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 3 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [330b62b5] HTTP GET http://localhost:8081/api/usuarios/3
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [330b62b5] [0c3d243b-9] Response 200 OK
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [330b62b5] [0c3d243b-9] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@363b9bcf]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Usuario 3 encontrado: Juans Pérez
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 4 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [574a9a96] HTTP GET http://localhost:8081/api/usuarios/4
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [574a9a96] [0c3d243b-10] Response 200 OK
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [574a9a96] [0c3d243b-10] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@3599f152]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Usuario 4 encontrado: María López
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 4 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [21f87660] HTTP GET http://localhost:8081/api/usuarios/4
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [21f87660] [0c3d243b-11] Response 200 OK
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [21f87660] [0c3d243b-11] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@76f13f62]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Usuario 4 encontrado: María López
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 4 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [2831e4c8] HTTP GET http://localhost:8081/api/usuarios/4
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [2831e4c8] [0c3d243b-12] Response 200 OK
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [2831e4c8] [0c3d243b-12] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@3303a818]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Usuario 4 encontrado: María López
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 5 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [136aa9b3] HTTP GET http://localhost:8081/api/usuarios/5
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [136aa9b3] [0c3d243b-13] Response 200 OK
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [136aa9b3] [0c3d243b-13] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@598ca854]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Usuario 5 encontrado: Pedro Ramírez
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 5 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [1d73fb9c] HTTP GET http://localhost:8081/api/usuarios/5
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [1d73fb9c] [0c3d243b-14] Response 200 OK
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [1d73fb9c] [0c3d243b-14] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@2365d156]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Usuario 5 encontrado: Pedro Ramírez
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 4 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [7dc38d4c] HTTP GET http://localhost:8081/api/usuarios/4
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [7dc38d4c] [0c3d243b-15] Response 200 OK
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [7dc38d4c] [0c3d243b-15] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@5c10e077]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Usuario 4 encontrado: María López
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG org.hibernate.SQL - 
+    select
+        td1_0.id,
+        td1_0.nombre 
+    from
+        tipo_doc td1_0 
+    where
+        td1_0.id=?
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 4 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [12e5ecfe] HTTP GET http://localhost:8081/api/usuarios/4
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [12e5ecfe] [0c3d243b-16] Response 200 OK
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [12e5ecfe] [0c3d243b-16] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@727dd085]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Usuario 4 encontrado: María López
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 4 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [74a34c3a] HTTP GET http://localhost:8081/api/usuarios/4
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [74a34c3a] [0c3d243b-17] Response 200 OK
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [74a34c3a] [0c3d243b-17] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@4e8f0896]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Usuario 4 encontrado: María López
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 4 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [22485ba1] HTTP GET http://localhost:8081/api/usuarios/4
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [22485ba1] [0c3d243b-18] Response 200 OK
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [22485ba1] [0c3d243b-18] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@43ed9f70]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Usuario 4 encontrado: María López
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 4 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [38c2a332] HTTP GET http://localhost:8081/api/usuarios/4
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [38c2a332] [0c3d243b-19] Response 200 OK
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [38c2a332] [0c3d243b-19] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@18a5dc22]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Usuario 4 encontrado: María López
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 4 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [39270855] HTTP GET http://localhost:8081/api/usuarios/4
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [39270855] [0c3d243b-20] Response 200 OK
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [39270855] [0c3d243b-20] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@440de4b]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Usuario 4 encontrado: María López
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 6 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [5a17bc98] HTTP GET http://localhost:8081/api/usuarios/6
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [5a17bc98] [0c3d243b-21] Response 404 NOT_FOUND
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [5a17bc98] [0c3d243b-21] Read 143 bytes
+2025-12-06 21:36:42 [reactor-http-nio-2] WARN  c.r.d.client.UserServiceClient - Usuario 6 no encontrado en User Service (404)
+2025-12-06 21:36:42 [http-nio-8083-exec-3] WARN  c.r.d.client.UserServiceClient - Usuario 6 no encontrado o error al consultar
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 6 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [7b8f45d] HTTP GET http://localhost:8081/api/usuarios/6
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [7b8f45d] [0c3d243b-22] Response 404 NOT_FOUND
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [7b8f45d] [0c3d243b-22] Read 143 bytes
+2025-12-06 21:36:42 [reactor-http-nio-2] WARN  c.r.d.client.UserServiceClient - Usuario 6 no encontrado en User Service (404)
+2025-12-06 21:36:42 [http-nio-8083-exec-3] WARN  c.r.d.client.UserServiceClient - Usuario 6 no encontrado o error al consultar
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 6 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [3c8885d6] HTTP GET http://localhost:8081/api/usuarios/6
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [3c8885d6] [0c3d243b-23] Response 404 NOT_FOUND
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [3c8885d6] [0c3d243b-23] Read 143 bytes
+2025-12-06 21:36:42 [reactor-http-nio-2] WARN  c.r.d.client.UserServiceClient - Usuario 6 no encontrado en User Service (404)
+2025-12-06 21:36:42 [http-nio-8083-exec-3] WARN  c.r.d.client.UserServiceClient - Usuario 6 no encontrado o error al consultar
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 6 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [47fd66ee] HTTP GET http://localhost:8081/api/usuarios/6
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [47fd66ee] [0c3d243b-24] Response 404 NOT_FOUND
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [47fd66ee] [0c3d243b-24] Read 143 bytes
+2025-12-06 21:36:42 [reactor-http-nio-2] WARN  c.r.d.client.UserServiceClient - Usuario 6 no encontrado en User Service (404)
+2025-12-06 21:36:42 [http-nio-8083-exec-3] WARN  c.r.d.client.UserServiceClient - Usuario 6 no encontrado o error al consultar
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 6 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [383cd77f] HTTP GET http://localhost:8081/api/usuarios/6
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [383cd77f] [0c3d243b-25] Response 404 NOT_FOUND
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [383cd77f] [0c3d243b-25] Read 143 bytes
+2025-12-06 21:36:42 [reactor-http-nio-2] WARN  c.r.d.client.UserServiceClient - Usuario 6 no encontrado en User Service (404)
+2025-12-06 21:36:42 [http-nio-8083-exec-3] WARN  c.r.d.client.UserServiceClient - Usuario 6 no encontrado o error al consultar
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 6 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [3a50a1f3] HTTP GET http://localhost:8081/api/usuarios/6
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [3a50a1f3] [0c3d243b-26] Response 404 NOT_FOUND
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [3a50a1f3] [0c3d243b-26] Read 143 bytes
+2025-12-06 21:36:42 [reactor-http-nio-2] WARN  c.r.d.client.UserServiceClient - Usuario 6 no encontrado en User Service (404)
+2025-12-06 21:36:42 [http-nio-8083-exec-3] WARN  c.r.d.client.UserServiceClient - Usuario 6 no encontrado o error al consultar
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 7 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [4a90b6f5] HTTP GET http://localhost:8081/api/usuarios/7
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [4a90b6f5] [0c3d243b-27] Response 404 NOT_FOUND
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [4a90b6f5] [0c3d243b-27] Read 143 bytes
+2025-12-06 21:36:42 [reactor-http-nio-2] WARN  c.r.d.client.UserServiceClient - Usuario 7 no encontrado en User Service (404)
+2025-12-06 21:36:42 [http-nio-8083-exec-3] WARN  c.r.d.client.UserServiceClient - Usuario 7 no encontrado o error al consultar
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 7 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [392ab897] HTTP GET http://localhost:8081/api/usuarios/7
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [392ab897] [0c3d243b-28] Response 404 NOT_FOUND
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [392ab897] [0c3d243b-28] Read 143 bytes
+2025-12-06 21:36:42 [reactor-http-nio-2] WARN  c.r.d.client.UserServiceClient - Usuario 7 no encontrado en User Service (404)
+2025-12-06 21:36:42 [http-nio-8083-exec-3] WARN  c.r.d.client.UserServiceClient - Usuario 7 no encontrado o error al consultar
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 7 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [1ba58954] HTTP GET http://localhost:8081/api/usuarios/7
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [1ba58954] [0c3d243b-29] Response 404 NOT_FOUND
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [1ba58954] [0c3d243b-29] Read 143 bytes
+2025-12-06 21:36:42 [reactor-http-nio-2] WARN  c.r.d.client.UserServiceClient - Usuario 7 no encontrado en User Service (404)
+2025-12-06 21:36:42 [http-nio-8083-exec-3] WARN  c.r.d.client.UserServiceClient - Usuario 7 no encontrado o error al consultar
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 7 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [4a4afa15] HTTP GET http://localhost:8081/api/usuarios/7
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [4a4afa15] [0c3d243b-30] Response 404 NOT_FOUND
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [4a4afa15] [0c3d243b-30] Read 143 bytes
+2025-12-06 21:36:42 [reactor-http-nio-2] WARN  c.r.d.client.UserServiceClient - Usuario 7 no encontrado en User Service (404)
+2025-12-06 21:36:42 [http-nio-8083-exec-3] WARN  c.r.d.client.UserServiceClient - Usuario 7 no encontrado o error al consultar
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 7 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [5f75fd57] HTTP GET http://localhost:8081/api/usuarios/7
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [5f75fd57] [0c3d243b-31] Response 404 NOT_FOUND
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [5f75fd57] [0c3d243b-31] Read 143 bytes
+2025-12-06 21:36:42 [reactor-http-nio-2] WARN  c.r.d.client.UserServiceClient - Usuario 7 no encontrado en User Service (404)
+2025-12-06 21:36:42 [http-nio-8083-exec-3] WARN  c.r.d.client.UserServiceClient - Usuario 7 no encontrado o error al consultar
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 7 en URL: http://localhost:8081
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.r.f.client.ExchangeFunctions - [2866ad97] HTTP GET http://localhost:8081/api/usuarios/7
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [2866ad97] [0c3d243b-32] Response 404 NOT_FOUND
+2025-12-06 21:36:42 [reactor-http-nio-2] DEBUG org.springframework.web.HttpLogging - [2866ad97] [0c3d243b-32] Read 143 bytes
+2025-12-06 21:36:42 [reactor-http-nio-2] WARN  c.r.d.client.UserServiceClient - Usuario 7 no encontrado en User Service (404)
+2025-12-06 21:36:42 [http-nio-8083-exec-3] WARN  c.r.d.client.UserServiceClient - Usuario 7 no encontrado o error al consultar
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json, application/yaml]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.rentify.documentService.dto.DocumentoDTO@299a457, com.rentify.documentService.dto.DocumentoDTO@ (truncated)...]
+2025-12-06 21:36:42 [http-nio-8083-exec-3] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-12-06 21:37:14 [SpringApplicationShutdownHook] INFO  o.s.b.w.e.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2025-12-06 21:37:14 [tomcat-shutdown] INFO  o.s.b.w.e.tomcat.GracefulShutdown - Graceful shutdown complete
+2025-12-06 21:37:14 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-12-06 21:37:14 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-12-06 21:37:14 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
