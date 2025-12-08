@@ -44,14 +44,47 @@ public class Documento {
     @Column(name = "tipo_doc_id", nullable = false)
     private Long tipoDocId;
 
+    // ==================== NUEVOS CAMPOS ====================
+
+    /**
+     * Observaciones o motivo de rechazo.
+     * El admin escribe aqui el motivo cuando rechaza un documento.
+     */
+    @Column(name = "observaciones", length = 500)
+    private String observaciones;
+
+    /**
+     * Fecha de ultima actualizacion del estado.
+     */
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "f_actualizacion")
+    private Date fechaActualizacion;
+
+    /**
+     * ID del administrador que reviso/actualizo el documento.
+     */
+    @Column(name = "revisado_por")
+    private Long revisadoPor;
+
+    // ==================== CALLBACKS ====================
+
     /**
      * Callback que se ejecuta antes de persistir la entidad.
-     * Establece valores por defecto si no están definidos.
+     * Establece valores por defecto si no estan definidos.
      */
     @PrePersist
     protected void onCreate() {
         if (fechaSubido == null) {
             fechaSubido = new Date();
         }
+        fechaActualizacion = new Date();
+    }
+
+    /**
+     * Callback que se ejecuta antes de actualizar la entidad.
+     */
+    @PreUpdate
+    protected void onUpdate() {
+        fechaActualizacion = new Date();
     }
 }

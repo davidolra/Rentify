@@ -2,6 +2,7 @@ package com.rentify.documentService.service;
 
 import com.rentify.documentService.client.UserServiceClient;
 import com.rentify.documentService.constants.DocumentConstants.*;
+import com.rentify.documentService.dto.ActualizarEstadoRequest;
 import com.rentify.documentService.dto.DocumentoDTO;
 import com.rentify.documentService.dto.external.UsuarioDTO;
 import com.rentify.documentService.exception.BusinessValidationException;
@@ -25,8 +26,8 @@ import java.util.stream.Collectors;
 import static com.rentify.documentService.constants.DocumentConstants.Mensajes;
 
 /**
- * Servicio para gestión de documentos.
- * Implementa toda la lógica de negocio relacionada con documentos de usuarios.
+ * Servicio para gestion de documentos.
+ * Implementa toda la logica de negocio relacionada con documentos de usuarios.
  */
 @Service
 @RequiredArgsConstructor
@@ -39,6 +40,12 @@ public class DocumentoService {
     private final TipoDocumentoRepository tipoDocumentoRepository;
     private final UserServiceClient userServiceClient;
     private final ModelMapper modelMapper;
+
+    // IDs de estados (deben coincidir con la BD)
+    private static final Long ESTADO_PENDIENTE = 1L;
+    private static final Long ESTADO_ACEPTADO = 2L;
+    private static final Long ESTADO_RECHAZADO = 3L;
+    private static final Long ESTADO_EN_REVISION = 4L;
 
     /**
      * Crea/sube un nuevo documento.
@@ -66,7 +73,7 @@ public class DocumentoService {
             );
         }
 
-        // 3. Validar límite de documentos
+        // 3. Validar limite de documentos
         long cantidadDocumentos = documentoRepository.countByUsuarioId(documentoDTO.getUsuarioId());
         if (cantidadDocumentos >= Limites.MAX_DOCUMENTOS_POR_USUARIO) {
             throw new BusinessValidationException(
@@ -86,7 +93,7 @@ public class DocumentoService {
                         String.format(Mensajes.TIPO_DOC_NO_ENCONTRADO, documentoDTO.getTipoDocId())
                 ));
 
-        // 6. Crear y guardar documento (mapeo manual para evitar conflicto con ModelMapper)
+        // 6. Crear y guardar documento
         Documento documento = Documento.builder()
                 .nombre(documentoDTO.getNombre())
                 .usuarioId(documentoDTO.getUsuarioId())
@@ -103,9 +110,6 @@ public class DocumentoService {
 
     /**
      * Obtiene todos los documentos.
-     *
-     * @param includeDetails si debe incluir detalles expandidos
-     * @return lista de DocumentoDTO
      */
     @Transactional(readOnly = true)
     public List<DocumentoDTO> listarTodos(boolean includeDetails) {
@@ -118,10 +122,6 @@ public class DocumentoService {
 
     /**
      * Obtiene un documento por ID.
-     *
-     * @param id ID del documento
-     * @param includeDetails si debe incluir detalles expandidos
-     * @return DocumentoDTO encontrado
      */
     @Transactional(readOnly = true)
     public DocumentoDTO obtenerPorId(Long id, boolean includeDetails) {
@@ -137,10 +137,6 @@ public class DocumentoService {
 
     /**
      * Obtiene todos los documentos de un usuario.
-     *
-     * @param usuarioId ID del usuario
-     * @param includeDetails si debe incluir detalles expandidos
-     * @return lista de DocumentoDTO
      */
     @Transactional(readOnly = true)
     public List<DocumentoDTO> obtenerPorUsuario(Long usuarioId, boolean includeDetails) {
@@ -165,30 +161,26 @@ public class DocumentoService {
     }
 
     /**
-     * Actualiza el estado de un documento.
-     *
-     * @param documentoId ID del documento
-     * @param nuevoEstadoId ID del nuevo estado
-     * @return DocumentoDTO actualizado
+     * Actualiza el estado de un documento (sin observaciones).
+     * Mantiene compatibilidad con endpoint original.
      */
     @Transactional
     public DocumentoDTO actualizarEstado(Long documentoId, Long nuevoEstadoId) {
         log.info("Actualizando estado de documento {} a estado {}", documentoId, nuevoEstadoId);
 
-        // 1. Verificar que el documento existe
         Documento documento = documentoRepository.findById(documentoId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         String.format(Mensajes.DOCUMENTO_NO_ENCONTRADO, documentoId)
                 ));
 
-        // 2. Verificar que el nuevo estado existe
         Estado nuevoEstado = estadoRepository.findById(nuevoEstadoId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         String.format(Mensajes.ESTADO_NO_ENCONTRADO, nuevoEstadoId)
                 ));
 
-        // 3. Actualizar
         documento.setEstadoId(nuevoEstadoId);
+        documento.setFechaActualizacion(new Date());
+
         Documento updated = documentoRepository.save(documento);
 
         log.info("Estado de documento {} actualizado exitosamente a: {}",
@@ -198,17 +190,61 @@ public class DocumentoService {
     }
 
     /**
-     * Verifica si un usuario tiene documentos aprobados.
-     * Útil para otros servicios como Application Service.
+     * NUEVO: Actualiza el estado de un documento CON observaciones.
+     * Usado principalmente para rechazos donde se requiere un motivo.
      *
-     * @param usuarioId ID del usuario
-     * @return true si tiene al menos un documento aprobado
+     * @param documentoId ID del documento
+     * @param request Request con estadoId, observaciones y revisadoPor
+     * @return DocumentoDTO actualizado
+     */
+    @Transactional
+    public DocumentoDTO actualizarEstadoConObservaciones(Long documentoId, ActualizarEstadoRequest request) {
+        log.info("Actualizando estado de documento {} a estado {} con observaciones",
+                documentoId, request.getEstadoId());
+
+        // 1. Verificar que el documento existe
+        Documento documento = documentoRepository.findById(documentoId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        String.format(Mensajes.DOCUMENTO_NO_ENCONTRADO, documentoId)
+                ));
+
+        // 2. Verificar que el nuevo estado existe
+        Estado nuevoEstado = estadoRepository.findById(request.getEstadoId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        String.format(Mensajes.ESTADO_NO_ENCONTRADO, request.getEstadoId())
+                ));
+
+        // 3. Validar que si es RECHAZO, debe tener observaciones
+        if (ESTADO_RECHAZADO.equals(request.getEstadoId())) {
+            if (request.getObservaciones() == null || request.getObservaciones().trim().isEmpty()) {
+                throw new BusinessValidationException(
+                        "El motivo de rechazo es obligatorio cuando se rechaza un documento"
+                );
+            }
+        }
+
+        // 4. Actualizar documento
+        documento.setEstadoId(request.getEstadoId());
+        documento.setObservaciones(request.getObservaciones());
+        documento.setRevisadoPor(request.getRevisadoPor());
+        documento.setFechaActualizacion(new Date());
+
+        Documento updated = documentoRepository.save(documento);
+
+        log.info("Documento {} actualizado a estado {} con observaciones: '{}'",
+                documentoId, nuevoEstado.getNombre(),
+                request.getObservaciones() != null ? request.getObservaciones().substring(0, Math.min(50, request.getObservaciones().length())) : "N/A");
+
+        return convertToDTO(updated, true);
+    }
+
+    /**
+     * Verifica si un usuario tiene documentos aprobados.
      */
     @Transactional(readOnly = true)
     public boolean hasApprovedDocuments(Long usuarioId) {
         log.debug("Verificando documentos aprobados para usuario: {}", usuarioId);
 
-        // Obtener el ID del estado ACEPTADO
         Estado estadoAceptado = estadoRepository.findByNombre(EstadoDocumento.ACEPTADO)
                 .orElse(null);
 
@@ -223,8 +259,6 @@ public class DocumentoService {
 
     /**
      * Elimina un documento.
-     *
-     * @param id ID del documento a eliminar
      */
     @Transactional
     public void eliminarDocumento(Long id) {
@@ -242,13 +276,19 @@ public class DocumentoService {
 
     /**
      * Convierte una entidad Documento a DTO.
-     *
-     * @param documento entidad a convertir
-     * @param includeDetails si debe incluir información expandida
-     * @return DocumentoDTO
      */
     private DocumentoDTO convertToDTO(Documento documento, boolean includeDetails) {
-        DocumentoDTO dto = modelMapper.map(documento, DocumentoDTO.class);
+        DocumentoDTO dto = DocumentoDTO.builder()
+                .id(documento.getId())
+                .nombre(documento.getNombre())
+                .fechaSubido(documento.getFechaSubido())
+                .usuarioId(documento.getUsuarioId())
+                .estadoId(documento.getEstadoId())
+                .tipoDocId(documento.getTipoDocId())
+                .observaciones(documento.getObservaciones())
+                .fechaActualizacion(documento.getFechaActualizacion())
+                .revisadoPor(documento.getRevisadoPor())
+                .build();
 
         if (includeDetails) {
             // Obtener nombre del estado
@@ -258,7 +298,7 @@ public class DocumentoService {
                     dto.setEstadoNombre(estado.getNombre());
                 }
             } catch (Exception e) {
-                log.warn("No se pudo obtener información del estado {}: {}",
+                log.warn("No se pudo obtener informacion del estado {}: {}",
                         documento.getEstadoId(), e.getMessage());
             }
 
@@ -269,16 +309,16 @@ public class DocumentoService {
                     dto.setTipoDocNombre(tipoDoc.getNombre());
                 }
             } catch (Exception e) {
-                log.warn("No se pudo obtener información del tipo de documento {}: {}",
+                log.warn("No se pudo obtener informacion del tipo de documento {}: {}",
                         documento.getTipoDocId(), e.getMessage());
             }
 
-            // Obtener información del usuario
+            // Obtener informacion del usuario
             try {
                 UsuarioDTO usuario = userServiceClient.getUserById(documento.getUsuarioId());
                 dto.setUsuario(usuario);
             } catch (Exception e) {
-                log.warn("No se pudo obtener información del usuario {}: {}",
+                log.warn("No se pudo obtener informacion del usuario {}: {}",
                         documento.getUsuarioId(), e.getMessage());
             }
         }

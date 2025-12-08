@@ -1,5 +1,6 @@
 package com.rentify.documentService.controller;
 
+import com.rentify.documentService.dto.ActualizarEstadoRequest;
 import com.rentify.documentService.dto.DocumentoDTO;
 import com.rentify.documentService.service.DocumentoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,13 +17,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Controlador REST para gestión de documentos de usuarios.
+ * Controlador REST para gestion de documentos de usuarios.
  * Provee endpoints para subir, consultar, actualizar y eliminar documentos.
  */
 @RestController
 @RequestMapping("/api/documentos")
 @RequiredArgsConstructor
-@Tag(name = "Documentos", description = "Gestión de documentos de usuarios")
+@Tag(name = "Documentos", description = "Gestion de documentos de usuarios")
 public class DocumentoController {
 
     private final DocumentoService documentoService;
@@ -32,10 +33,10 @@ public class DocumentoController {
      */
     @PostMapping
     @Operation(summary = "Subir nuevo documento",
-            description = "Crea un nuevo documento para un usuario. Requiere usuario válido con permisos adecuados.")
+            description = "Crea un nuevo documento para un usuario. Requiere usuario valido con permisos adecuados.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Documento creado exitosamente"),
-            @ApiResponse(responseCode = "400", description = "Datos inválidos o validación de negocio fallida"),
+            @ApiResponse(responseCode = "400", description = "Datos invalidos o validacion de negocio fallida"),
             @ApiResponse(responseCode = "503", description = "Servicio de usuarios no disponible")
     })
     public ResponseEntity<DocumentoDTO> crearDocumento(
@@ -57,11 +58,11 @@ public class DocumentoController {
     }
 
     /**
-     * Obtiene un documento específico por ID.
+     * Obtiene un documento especifico por ID.
      */
     @GetMapping("/{id}")
     @Operation(summary = "Obtener documento por ID",
-            description = "Consulta un documento específico por su identificador")
+            description = "Consulta un documento especifico por su identificador")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Documento encontrado"),
             @ApiResponse(responseCode = "404", description = "Documento no encontrado")
@@ -74,11 +75,11 @@ public class DocumentoController {
     }
 
     /**
-     * Obtiene todos los documentos de un usuario específico.
+     * Obtiene todos los documentos de un usuario especifico.
      */
     @GetMapping("/usuario/{usuarioId}")
     @Operation(summary = "Obtener documentos por usuario",
-            description = "Lista todos los documentos de un usuario específico")
+            description = "Lista todos los documentos de un usuario especifico")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Documentos encontrados"),
             @ApiResponse(responseCode = "404", description = "Usuario no existe")
@@ -92,14 +93,12 @@ public class DocumentoController {
 
     /**
      * Verifica si un usuario tiene documentos aprobados.
-     * Endpoint útil para otros microservicios (Application Service).
      */
     @GetMapping("/usuario/{usuarioId}/verificar-aprobados")
     @Operation(summary = "Verificar si usuario tiene documentos aprobados",
-            description = "Verifica si un usuario tiene al menos un documento con estado ACEPTADO. " +
-                    "Usado por Application Service para validar solicitudes de arriendo.")
+            description = "Verifica si un usuario tiene al menos un documento con estado ACEPTADO.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Verificación completada exitosamente")
+            @ApiResponse(responseCode = "200", description = "Verificacion completada exitosamente")
     })
     public ResponseEntity<Boolean> verificarDocumentosAprobados(
             @Parameter(description = "ID del usuario a verificar")
@@ -109,7 +108,8 @@ public class DocumentoController {
     }
 
     /**
-     * Actualiza el estado de un documento.
+     * Actualiza el estado de un documento (sin observaciones).
+     * Mantiene compatibilidad con clientes existentes.
      */
     @PatchMapping("/{id}/estado/{estadoId}")
     @Operation(summary = "Actualizar estado de documento",
@@ -125,13 +125,31 @@ public class DocumentoController {
     }
 
     /**
-     * Verifica si un usuario tiene documentos aprobados.
-     * Endpoint alternativo (DEPRECATED - usar /verificar-aprobados).
+     * NUEVO: Actualiza el estado de un documento CON observaciones.
+     * Usado para rechazos donde se requiere indicar el motivo.
+     */
+    @PatchMapping("/{id}/estado")
+    @Operation(summary = "Actualizar estado con observaciones",
+            description = "Cambia el estado de un documento incluyendo observaciones/motivo. " +
+                    "Obligatorio para rechazos.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Estado actualizado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Motivo requerido para rechazos"),
+            @ApiResponse(responseCode = "404", description = "Documento o estado no encontrado")
+    })
+    public ResponseEntity<DocumentoDTO> actualizarEstadoConObservaciones(
+            @Parameter(description = "ID del documento")
+            @PathVariable Long id,
+            @Valid @RequestBody ActualizarEstadoRequest request) {
+        return ResponseEntity.ok(documentoService.actualizarEstadoConObservaciones(id, request));
+    }
+
+    /**
+     * Endpoint alternativo (DEPRECATED).
      */
     @GetMapping("/usuario/{usuarioId}/aprobados")
     @Operation(summary = "Verificar documentos aprobados (DEPRECATED)",
-            description = "Verifica si un usuario tiene al menos un documento aprobado. " +
-                    "DEPRECATED: Usar /usuario/{usuarioId}/verificar-aprobados en su lugar")
+            description = "DEPRECATED: Usar /usuario/{usuarioId}/verificar-aprobados en su lugar")
     @Deprecated
     public ResponseEntity<Boolean> hasApprovedDocuments(@PathVariable Long usuarioId) {
         return ResponseEntity.ok(documentoService.hasApprovedDocuments(usuarioId));

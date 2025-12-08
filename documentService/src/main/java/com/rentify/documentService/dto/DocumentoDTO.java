@@ -26,7 +26,7 @@ import java.util.Date;
 @Schema(description = "Datos de un documento de usuario")
 public class DocumentoDTO {
 
-    @Schema(description = "ID único del documento",
+    @Schema(description = "ID unico del documento",
             example = "1",
             accessMode = Schema.AccessMode.READ_ONLY)
     private Long id;
@@ -43,24 +43,39 @@ public class DocumentoDTO {
     private Date fechaSubido;
 
     @NotNull(message = "El ID del usuario es obligatorio")
-    @Positive(message = "El ID del usuario debe ser un número positivo")
+    @Positive(message = "El ID del usuario debe ser un numero positivo")
     @Schema(description = "ID del usuario propietario del documento",
             example = "1")
     private Long usuarioId;
 
     @NotNull(message = "El ID del estado es obligatorio")
-    @Positive(message = "El ID del estado debe ser un número positivo")
+    @Positive(message = "El ID del estado debe ser un numero positivo")
     @Schema(description = "ID del estado del documento",
             example = "1")
     private Long estadoId;
 
     @NotNull(message = "El ID del tipo de documento es obligatorio")
-    @Positive(message = "El ID del tipo de documento debe ser un número positivo")
+    @Positive(message = "El ID del tipo de documento debe ser un numero positivo")
     @Schema(description = "ID del tipo de documento",
             example = "1")
     private Long tipoDocId;
 
-    // Campos expandidos (solo en consultas con includeDetails=true)
+    // ==================== NUEVOS CAMPOS ====================
+
+    @Size(max = 500, message = "Las observaciones no pueden exceder 500 caracteres")
+    @Schema(description = "Observaciones o motivo de rechazo del documento",
+            example = "Documento ilegible, por favor suba una imagen mas clara")
+    private String observaciones;
+
+    @Schema(description = "Fecha de ultima actualizacion del estado",
+            accessMode = Schema.AccessMode.READ_ONLY)
+    private Date fechaActualizacion;
+
+    @Schema(description = "ID del administrador que reviso el documento",
+            accessMode = Schema.AccessMode.READ_ONLY)
+    private Long revisadoPor;
+
+    // ==================== CAMPOS EXPANDIDOS ====================
 
     @Schema(description = "Nombre del estado del documento",
             example = "PENDIENTE",
@@ -72,7 +87,7 @@ public class DocumentoDTO {
             accessMode = Schema.AccessMode.READ_ONLY)
     private String tipoDocNombre;
 
-    @Schema(description = "Información detallada del usuario propietario",
+    @Schema(description = "Informacion detallada del usuario propietario",
             accessMode = Schema.AccessMode.READ_ONLY)
     private UsuarioDTO usuario;
 }
