@@ -17,10 +17,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Servicio para gestión de propiedades.
- * Implementa la lógica de negocio para CRUD y operaciones avanzadas.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -32,33 +28,26 @@ public class PropertyService {
     private final CategoriaRepository categoriaRepository;
     private final ModelMapper modelMapper;
 
-    /**
-     * Crea una nueva propiedad con validaciones de negocio.
-     */
     @Transactional
     public PropertyDTO crearProperty(PropertyDTO propertyDTO) {
         log.info("Creando nueva propiedad con código: {}", propertyDTO.getCodigo());
 
-        // 1. Validar código único
         if (propertyRepository.existsByCodigo(propertyDTO.getCodigo())) {
             throw new BusinessValidationException(
                     String.format(PropertyConstants.Mensajes.CODIGO_DUPLICADO, propertyDTO.getCodigo())
             );
         }
 
-        // 2. Validar divisa
         if (!PropertyConstants.Divisas.esValida(propertyDTO.getDivisa())) {
             throw new BusinessValidationException(
                     String.format(PropertyConstants.Mensajes.DIVISA_INVALIDA, propertyDTO.getDivisa())
             );
         }
 
-        // 3. Validar precio
         if (propertyDTO.getPrecioMensual().compareTo(BigDecimal.ZERO) <= 0) {
             throw new BusinessValidationException(PropertyConstants.Mensajes.PRECIO_INVALIDO);
         }
 
-        // 4. Validar metros cuadrados
         if (propertyDTO.getM2().compareTo(BigDecimal.valueOf(PropertyConstants.Limites.MIN_M2)) < 0 ||
                 propertyDTO.getM2().compareTo(BigDecimal.valueOf(PropertyConstants.Limites.MAX_M2)) > 0) {
             throw new BusinessValidationException(
@@ -68,7 +57,6 @@ public class PropertyService {
             );
         }
 
-        // 5. Validar habitaciones
         if (propertyDTO.getNHabit() < PropertyConstants.Limites.MIN_HABITACIONES ||
                 propertyDTO.getNHabit() > PropertyConstants.Limites.MAX_HABITACIONES) {
             throw new BusinessValidationException(
@@ -78,7 +66,6 @@ public class PropertyService {
             );
         }
 
-        // 6. Validar baños
         if (propertyDTO.getNBanos() < PropertyConstants.Limites.MIN_BANOS ||
                 propertyDTO.getNBanos() > PropertyConstants.Limites.MAX_BANOS) {
             throw new BusinessValidationException(
@@ -88,19 +75,16 @@ public class PropertyService {
             );
         }
 
-        // 7. Validar que el tipo existe
         Tipo tipo = tipoRepository.findById(propertyDTO.getTipoId())
                 .orElseThrow(() -> new BusinessValidationException(
                         String.format(PropertyConstants.Mensajes.TIPO_NO_ENCONTRADO, propertyDTO.getTipoId())
                 ));
 
-        // 8. Validar que la comuna existe
         Comuna comuna = comunaRepository.findById(propertyDTO.getComunaId())
                 .orElseThrow(() -> new BusinessValidationException(
                         String.format(PropertyConstants.Mensajes.COMUNA_NO_ENCONTRADA, propertyDTO.getComunaId())
                 ));
 
-        // 9. Crear y guardar la propiedad
         Property property = Property.builder()
                 .codigo(propertyDTO.getCodigo())
                 .titulo(propertyDTO.getTitulo())
@@ -122,17 +106,11 @@ public class PropertyService {
         return convertToDTO(saved, true);
     }
 
-    /**
-     * Lista todas las propiedades con valor por defecto sin detalles.
-     */
     @Transactional(readOnly = true)
     public List<PropertyDTO> listarTodas() {
         return listarTodas(false);
     }
 
-    /**
-     * Lista todas las propiedades con opción de incluir detalles.
-     */
     @Transactional(readOnly = true)
     public List<PropertyDTO> listarTodas(boolean includeDetails) {
         log.debug("Listando todas las propiedades (includeDetails: {})", Boolean.valueOf(includeDetails));
@@ -142,17 +120,11 @@ public class PropertyService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Obtiene una propiedad por ID con valor por defecto sin detalles.
-     */
     @Transactional(readOnly = true)
     public PropertyDTO obtenerPorId(Long id) {
         return obtenerPorId(id, false);
     }
 
-    /**
-     * Obtiene una propiedad por ID con opción de incluir detalles.
-     */
     @Transactional(readOnly = true)
     public PropertyDTO obtenerPorId(Long id, boolean includeDetails) {
         log.debug("Obteniendo propiedad con ID: {} (includeDetails: {})", id, Boolean.valueOf(includeDetails));
@@ -165,17 +137,11 @@ public class PropertyService {
         return convertToDTO(property, includeDetails);
     }
 
-    /**
-     * Obtiene una propiedad por código con valor por defecto sin detalles.
-     */
     @Transactional(readOnly = true)
     public PropertyDTO obtenerPorCodigo(String codigo) {
         return obtenerPorCodigo(codigo, false);
     }
 
-    /**
-     * Obtiene una propiedad por código con opción de incluir detalles.
-     */
     @Transactional(readOnly = true)
     public PropertyDTO obtenerPorCodigo(String codigo, boolean includeDetails) {
         log.debug("Obteniendo propiedad con código: {} (includeDetails: {})", codigo, Boolean.valueOf(includeDetails));
@@ -188,9 +154,6 @@ public class PropertyService {
         return convertToDTO(property, includeDetails);
     }
 
-    /**
-     * Actualiza una propiedad existente.
-     */
     @Transactional
     public PropertyDTO actualizar(Long id, PropertyDTO propertyDTO) {
         log.info("Actualizando propiedad con ID: {}", id);
@@ -200,7 +163,6 @@ public class PropertyService {
                         String.format(PropertyConstants.Mensajes.PROPIEDAD_NO_ENCONTRADA, id)
                 ));
 
-        // Validar código único si se está cambiando
         if (propertyDTO.getCodigo() != null &&
                 !propertyDTO.getCodigo().equals(property.getCodigo()) &&
                 propertyRepository.existsByCodigo(propertyDTO.getCodigo())) {
@@ -209,7 +171,6 @@ public class PropertyService {
             );
         }
 
-        // Actualizar campos
         if (propertyDTO.getCodigo() != null) {
             property.setCodigo(propertyDTO.getCodigo());
         }
@@ -262,9 +223,6 @@ public class PropertyService {
         return convertToDTO(updated, true);
     }
 
-    /**
-     * Elimina una propiedad.
-     */
     @Transactional
     public void eliminar(Long id) {
         log.info("Eliminando propiedad con ID: {}", id);
@@ -279,13 +237,10 @@ public class PropertyService {
         log.info("Propiedad eliminada exitosamente con ID: {}", id);
     }
 
-    /**
-     * Busca propiedades con filtros opcionales.
-     */
     @Transactional(readOnly = true)
     public List<PropertyDTO> buscarConFiltros(
-            Long comunaId,
             Long tipoId,
+            Long comunaId,
             BigDecimal minPrecio,
             BigDecimal maxPrecio,
             Integer nHabit,
@@ -293,8 +248,8 @@ public class PropertyService {
             Boolean petFriendly,
             boolean includeDetails) {
 
-        log.debug("Buscando propiedades con filtros - comuna: {}, tipo: {}, minPrecio: {}, maxPrecio: {}",
-                comunaId, tipoId, minPrecio, maxPrecio);
+        log.debug("Buscando propiedades con filtros - tipo: {}, comuna: {}, minPrecio: {}, maxPrecio: {}",
+                tipoId, comunaId, minPrecio, maxPrecio);
 
         List<Property> properties = propertyRepository.findByFilters(
                 comunaId, tipoId, minPrecio, maxPrecio, nHabit, nBanos, petFriendly
@@ -305,21 +260,14 @@ public class PropertyService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Verifica si existe una propiedad.
-     */
     @Transactional(readOnly = true)
     public boolean existsProperty(Long id) {
         return propertyRepository.existsById(id);
     }
 
-    /**
-     * Convierte una entidad Property a DTO con mapeo completo de relaciones.
-     */
     private PropertyDTO convertToDTO(Property property, boolean includeDetails) {
         PropertyDTO dto = new PropertyDTO();
 
-        // Mapear campos básicos
         dto.setId(property.getId());
         dto.setCodigo(property.getCodigo());
         dto.setTitulo(property.getTitulo());
@@ -332,16 +280,13 @@ public class PropertyService {
         dto.setDireccion(property.getDireccion());
         dto.setFcreacion(property.getFcreacion());
 
-        // Mapear IDs de relaciones
         dto.setTipoId(property.getTipo().getId());
         dto.setComunaId(property.getComuna().getId());
 
         if (includeDetails) {
-            // Mapear Tipo
             TipoDTO tipoDTO = modelMapper.map(property.getTipo(), TipoDTO.class);
             dto.setTipo(tipoDTO);
 
-            // Mapear Comuna con su Región
             ComunaDTO comunaDTO = new ComunaDTO();
             comunaDTO.setId(property.getComuna().getId());
             comunaDTO.setNombre(property.getComuna().getNombre());
@@ -351,13 +296,11 @@ public class PropertyService {
             comunaDTO.setRegion(regionDTO);
             dto.setComuna(comunaDTO);
 
-            // Mapear Fotos
             List<FotoDTO> fotosDTO = property.getFotos().stream()
                     .map(f -> modelMapper.map(f, FotoDTO.class))
                     .collect(Collectors.toList());
             dto.setFotos(fotosDTO);
 
-            // Mapear Categorías
             List<CategoriaDTO> categoriasDTO = property.getCategorias().stream()
                     .map(c -> modelMapper.map(c, CategoriaDTO.class))
                     .collect(Collectors.toList());

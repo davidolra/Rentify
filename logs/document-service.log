@@ -5950,3 +5950,234 @@ Caused by: java.lang.ClassNotFoundException: com.rentify.documentService.dto.Doc
 2025-12-08 14:18:23 [http-nio-8083-exec-4] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json, application/yaml]
 2025-12-08 14:18:23 [http-nio-8083-exec-4] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.rentify.documentService.dto.DocumentoDTO@3890a3cc, com.rentify.documentService.dto.DocumentoDTO (truncated)...]
 2025-12-08 14:18:23 [http-nio-8083-exec-4] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - GET "/api/documentos/usuario/4?includeDetails=true", parameters={masked}
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.rentify.documentService.controller.DocumentoController#obtenerPorUsuario(Long, boolean)
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.service.DocumentoService - Obteniendo documentos del usuario: 4
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Verificando existencia del usuario con ID: 4
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 4 en URL: http://localhost:8081
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [18ba1a28] HTTP GET http://localhost:8081/api/usuarios/4
+2025-12-08 14:30:12 [reactor-http-nio-5] DEBUG o.s.w.r.f.client.ExchangeFunctions - [18ba1a28] [7a116562-1] Response 200 OK
+2025-12-08 14:30:12 [reactor-http-nio-5] DEBUG org.springframework.web.HttpLogging - [18ba1a28] [7a116562-1] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@7d306440]
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Usuario 4 encontrado: María López
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Usuario 4 existe: true
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG org.hibernate.SQL - 
+    select
+        d1_0.id,
+        d1_0.estado_id,
+        d1_0.f_actualizacion,
+        d1_0.f_subido,
+        d1_0.nombre,
+        d1_0.observaciones,
+        d1_0.revisado_por,
+        d1_0.tipo_doc_id,
+        d1_0.usuarios_id 
+    from
+        documentos d1_0 
+    where
+        d1_0.usuarios_id=?
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG org.hibernate.SQL - 
+    select
+        e1_0.id,
+        e1_0.nombre 
+    from
+        estado e1_0 
+    where
+        e1_0.id=?
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG org.hibernate.SQL - 
+    select
+        td1_0.id,
+        td1_0.nombre 
+    from
+        tipo_doc td1_0 
+    where
+        td1_0.id=?
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 4 en URL: http://localhost:8081
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [16bcd23e] HTTP GET http://localhost:8081/api/usuarios/4
+2025-12-08 14:30:12 [reactor-http-nio-5] DEBUG o.s.w.r.f.client.ExchangeFunctions - [16bcd23e] [7a116562-2] Response 200 OK
+2025-12-08 14:30:12 [reactor-http-nio-5] DEBUG org.springframework.web.HttpLogging - [16bcd23e] [7a116562-2] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@1b2e85a2]
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Usuario 4 encontrado: María López
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG org.hibernate.SQL - 
+    select
+        td1_0.id,
+        td1_0.nombre 
+    from
+        tipo_doc td1_0 
+    where
+        td1_0.id=?
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 4 en URL: http://localhost:8081
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [4c3e7efa] HTTP GET http://localhost:8081/api/usuarios/4
+2025-12-08 14:30:12 [reactor-http-nio-5] DEBUG o.s.w.r.f.client.ExchangeFunctions - [4c3e7efa] [7a116562-3] Response 200 OK
+2025-12-08 14:30:12 [reactor-http-nio-5] DEBUG org.springframework.web.HttpLogging - [4c3e7efa] [7a116562-3] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@1d1f9b0f]
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Usuario 4 encontrado: María López
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG org.hibernate.SQL - 
+    select
+        td1_0.id,
+        td1_0.nombre 
+    from
+        tipo_doc td1_0 
+    where
+        td1_0.id=?
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 4 en URL: http://localhost:8081
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [3463c624] HTTP GET http://localhost:8081/api/usuarios/4
+2025-12-08 14:30:12 [reactor-http-nio-5] DEBUG o.s.w.r.f.client.ExchangeFunctions - [3463c624] [7a116562-4] Response 200 OK
+2025-12-08 14:30:12 [reactor-http-nio-5] DEBUG org.springframework.web.HttpLogging - [3463c624] [7a116562-4] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@72f31e9b]
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Usuario 4 encontrado: María López
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG org.hibernate.SQL - 
+    select
+        e1_0.id,
+        e1_0.nombre 
+    from
+        estado e1_0 
+    where
+        e1_0.id=?
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 4 en URL: http://localhost:8081
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [58fbb0bd] HTTP GET http://localhost:8081/api/usuarios/4
+2025-12-08 14:30:12 [reactor-http-nio-5] DEBUG o.s.w.r.f.client.ExchangeFunctions - [58fbb0bd] [7a116562-5] Response 200 OK
+2025-12-08 14:30:12 [reactor-http-nio-5] DEBUG org.springframework.web.HttpLogging - [58fbb0bd] [7a116562-5] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@4f2e9c1]
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Usuario 4 encontrado: María López
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 4 en URL: http://localhost:8081
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [11023ad4] HTTP GET http://localhost:8081/api/usuarios/4
+2025-12-08 14:30:12 [reactor-http-nio-5] DEBUG o.s.w.r.f.client.ExchangeFunctions - [11023ad4] [7a116562-6] Response 200 OK
+2025-12-08 14:30:12 [reactor-http-nio-5] DEBUG org.springframework.web.HttpLogging - [11023ad4] [7a116562-6] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@78f74943]
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Usuario 4 encontrado: María López
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 4 en URL: http://localhost:8081
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [7f78b6b7] HTTP GET http://localhost:8081/api/usuarios/4
+2025-12-08 14:30:12 [reactor-http-nio-5] DEBUG o.s.w.r.f.client.ExchangeFunctions - [7f78b6b7] [7a116562-7] Response 200 OK
+2025-12-08 14:30:12 [reactor-http-nio-5] DEBUG org.springframework.web.HttpLogging - [7f78b6b7] [7a116562-7] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@195162b1]
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Usuario 4 encontrado: María López
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG org.hibernate.SQL - 
+    select
+        td1_0.id,
+        td1_0.nombre 
+    from
+        tipo_doc td1_0 
+    where
+        td1_0.id=?
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 4 en URL: http://localhost:8081
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [6309844d] HTTP GET http://localhost:8081/api/usuarios/4
+2025-12-08 14:30:12 [reactor-http-nio-5] DEBUG o.s.w.r.f.client.ExchangeFunctions - [6309844d] [7a116562-8] Response 200 OK
+2025-12-08 14:30:12 [reactor-http-nio-5] DEBUG org.springframework.web.HttpLogging - [6309844d] [7a116562-8] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@73bca0c6]
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Usuario 4 encontrado: María López
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG org.hibernate.SQL - 
+    select
+        td1_0.id,
+        td1_0.nombre 
+    from
+        tipo_doc td1_0 
+    where
+        td1_0.id=?
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 4 en URL: http://localhost:8081
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [40cec01c] HTTP GET http://localhost:8081/api/usuarios/4
+2025-12-08 14:30:12 [reactor-http-nio-5] DEBUG o.s.w.r.f.client.ExchangeFunctions - [40cec01c] [7a116562-9] Response 200 OK
+2025-12-08 14:30:12 [reactor-http-nio-5] DEBUG org.springframework.web.HttpLogging - [40cec01c] [7a116562-9] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@6013e391]
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Usuario 4 encontrado: María López
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG org.hibernate.SQL - 
+    select
+        td1_0.id,
+        td1_0.nombre 
+    from
+        tipo_doc td1_0 
+    where
+        td1_0.id=?
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Consultando usuario con ID: 4 en URL: http://localhost:8081
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG o.s.w.r.f.client.ExchangeFunctions - [2a7b7817] HTTP GET http://localhost:8081/api/usuarios/4
+2025-12-08 14:30:12 [reactor-http-nio-5] DEBUG o.s.w.r.f.client.ExchangeFunctions - [2a7b7817] [7a116562-10] Response 200 OK
+2025-12-08 14:30:12 [reactor-http-nio-5] DEBUG org.springframework.web.HttpLogging - [2a7b7817] [7a116562-10] Decoded [com.rentify.documentService.dto.external.UsuarioDTO@226c1381]
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG c.r.d.client.UserServiceClient - Usuario 4 encontrado: María López
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json, application/yaml]
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [[com.rentify.documentService.dto.DocumentoDTO@491bbdf3, com.rentify.documentService.dto.DocumentoDTO (truncated)...]
+2025-12-08 14:30:12 [http-nio-8083-exec-2] DEBUG o.s.web.servlet.DispatcherServlet - Completed 200 OK
+2025-12-08 15:01:31 [SpringApplicationShutdownHook] INFO  o.s.b.w.e.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2025-12-08 15:01:31 [tomcat-shutdown] INFO  o.s.b.w.e.tomcat.GracefulShutdown - Graceful shutdown complete
+2025-12-08 15:01:31 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-12-08 15:01:31 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-12-08 15:01:31 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-12-08 20:05:31 [restartedMain] INFO  c.r.d.DocumentServiceApplication - Starting DocumentServiceApplication using Java 19.0.2 with PID 2888 (D:\Archivos equipo\Documents\GitHub\Rentify\documentService\target\classes started by Luis Muñoz Badilla in D:\Archivos equipo\Documents\GitHub\Rentify)
+2025-12-08 20:05:31 [restartedMain] DEBUG c.r.d.DocumentServiceApplication - Running with Spring Boot v3.5.6, Spring v6.2.11
+2025-12-08 20:05:31 [restartedMain] INFO  c.r.d.DocumentServiceApplication - The following 1 profile is active: "dev"
+2025-12-08 20:05:32 [restartedMain] INFO  o.s.b.d.e.DevToolsPropertyDefaultsPostProcessor - Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2025-12-08 20:05:32 [restartedMain] INFO  o.s.b.d.e.DevToolsPropertyDefaultsPostProcessor - For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2025-12-08 20:05:33 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-12-08 20:05:33 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 161 ms. Found 3 JPA repository interfaces.
+2025-12-08 20:05:34 [restartedMain] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8083 (http)
+2025-12-08 20:05:34 [restartedMain] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-12-08 20:05:34 [restartedMain] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.46]
+2025-12-08 20:05:34 [restartedMain] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-12-08 20:05:34 [restartedMain] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 2222 ms
+2025-12-08 20:05:34 [restartedMain] DEBUG o.s.w.f.ServerHttpObservationFilter - Filter 'webMvcObservationFilter' configured for use
+2025-12-08 20:05:34 [restartedMain] DEBUG o.s.web.filter.CorsFilter - Filter 'corsFilter' configured for use
+2025-12-08 20:05:34 [restartedMain] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-12-08 20:05:34 [restartedMain] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@4b6fca3e
+2025-12-08 20:05:34 [restartedMain] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-12-08 20:05:34 [restartedMain] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-12-08 20:05:34 [restartedMain] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.6.29.Final
+2025-12-08 20:05:34 [restartedMain] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-12-08 20:05:35 [restartedMain] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-12-08 20:05:35 [restartedMain] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-12-08 20:05:35 [restartedMain] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2025-12-08 20:05:35 [restartedMain] INFO  o.hibernate.orm.connections.pooling - HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 8.0
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-12-08 20:05:36 [restartedMain] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-12-08 20:05:36 [restartedMain] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-12-08 20:05:36 [restartedMain] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-12-08 20:05:37 [restartedMain] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-12-08 20:05:37 [restartedMain] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerMapping - 25 mappings in 'requestMappingHandlerMapping'
+2025-12-08 20:05:37 [restartedMain] DEBUG o.s.w.s.h.SimpleUrlHandlerMapping - Patterns [/webjars/**, /**, /swagger-ui*/*swagger-initializer.js, /swagger-ui*/**] in 'resourceHandlerMapping'
+2025-12-08 20:05:37 [restartedMain] DEBUG o.s.w.s.m.m.a.RequestMappingHandlerAdapter - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2025-12-08 20:05:37 [restartedMain] DEBUG o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - ControllerAdvice beans: 2 @ExceptionHandler, 1 ResponseBodyAdvice
+2025-12-08 20:05:38 [restartedMain] INFO  o.s.b.d.a.OptionalLiveReloadServer - LiveReload server is running on port 35729
+2025-12-08 20:05:38 [restartedMain] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 3 endpoints beneath base path '/actuator'
+2025-12-08 20:05:38 [restartedMain] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8083 (http) with context path '/'
+2025-12-08 20:05:38 [restartedMain] INFO  c.r.d.DocumentServiceApplication - Started DocumentServiceApplication in 7.157 seconds (process running for 14.879)
+2025-12-08 20:05:38 [restartedMain] INFO  c.r.d.config.DataInitializerConfig - 🔄 Verificando estados de documentos...
+2025-12-08 20:05:38 [restartedMain] DEBUG org.hibernate.SQL - 
+    select
+        count(*) 
+    from
+        estado e1_0
+2025-12-08 20:05:38 [restartedMain] DEBUG org.hibernate.SQL - 
+    select
+        count(*) 
+    from
+        estado e1_0
+2025-12-08 20:05:38 [restartedMain] INFO  c.r.d.config.DataInitializerConfig - ✅ Estados ya existen (4 registros)
+2025-12-08 20:05:38 [restartedMain] INFO  c.r.d.config.DataInitializerConfig - 🔄 Verificando tipos de documentos...
+2025-12-08 20:05:38 [restartedMain] DEBUG org.hibernate.SQL - 
+    select
+        count(*) 
+    from
+        tipo_doc td1_0
+2025-12-08 20:05:38 [restartedMain] DEBUG org.hibernate.SQL - 
+    select
+        count(*) 
+    from
+        tipo_doc td1_0
+2025-12-08 20:05:38 [restartedMain] INFO  c.r.d.config.DataInitializerConfig - ✅ Tipos de documento ya existen (6 registros)
+2025-12-08 20:05:38 [restartedMain] INFO  c.r.d.config.DataInitializerConfig - ════════════════════════════════════════════════════════
+2025-12-08 20:05:38 [restartedMain] INFO  c.r.d.config.DataInitializerConfig - 🎉 INICIALIZACIÓN COMPLETADA - DOCUMENT SERVICE
+2025-12-08 20:05:38 [restartedMain] INFO  c.r.d.config.DataInitializerConfig - ════════════════════════════════════════════════════════
+2025-12-08 20:05:38 [restartedMain] INFO  c.r.d.config.DataInitializerConfig - 📊 Resumen:
+2025-12-08 20:05:38 [restartedMain] DEBUG org.hibernate.SQL - 
+    select
+        count(*) 
+    from
+        estado e1_0
+2025-12-08 20:05:38 [restartedMain] INFO  c.r.d.config.DataInitializerConfig -    - Estados: 4 registros
+2025-12-08 20:05:38 [restartedMain] DEBUG org.hibernate.SQL - 
+    select
+        count(*) 
+    from
+        tipo_doc td1_0
+2025-12-08 20:05:38 [restartedMain] INFO  c.r.d.config.DataInitializerConfig -    - Tipos de Documento: 6 registros
+2025-12-08 20:05:38 [restartedMain] INFO  c.r.d.config.DataInitializerConfig - ════════════════════════════════════════════════════════
+2025-12-08 20:05:38 [restartedMain] INFO  c.r.d.config.DataInitializerConfig - 🚀 Document Service listo para recibir peticiones
+2025-12-08 20:05:38 [restartedMain] INFO  c.r.d.config.DataInitializerConfig - 🔗 Puerto: 8083
+2025-12-08 20:05:38 [restartedMain] INFO  c.r.d.config.DataInitializerConfig - 📖 Swagger UI: http://localhost:8083/swagger-ui/index.html
+2025-12-08 20:05:38 [restartedMain] INFO  c.r.d.config.DataInitializerConfig - ════════════════════════════════════════════════════════
+2025-12-08 20:40:13 [HikariPool-1:housekeeper] WARN  com.zaxxer.hikari.pool.PoolBase - HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@51b690d8 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
