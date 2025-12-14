@@ -53,22 +53,28 @@ class GlobalExceptionHandlerTest {
         when(usuarioService.registrarUsuario(any(UsuarioDTO.class)))
                 .thenThrow(new BusinessValidationException("El email ya está registrado"));
 
+        // CORRECCIÓN: La fecha de nacimiento debe ser un String
+        String fechaNacimientoValida = "1995-05-15";
+
         UsuarioDTO usuarioDTO = UsuarioDTO.builder()
                 .pnombre("Juan")
                 .snombre("Carlos")
                 .papellido("Pérez")
-                .fnacimiento(LocalDate.of(1995, 5, 15))
+                .fnacimiento(fechaNacimientoValida)
                 .email("juan.perez@email.com")
                 .rut("12345678-9")
                 .ntelefono("987654321")
                 .clave("password123")
                 .estadoId(1L)
+                .rolId(3L)
+                .fcreacion(LocalDate.now().toString())
+                .factualizacion(LocalDate.now().toString())
                 .build();
 
         // Act & Assert
         mockMvc.perform(post("/api/usuarios")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"pnombre\":\"Juan\",\"snombre\":\"Carlos\",\"papellido\":\"Pérez\",\"fnacimiento\":\"1995-05-15\",\"email\":\"juan.perez@email.com\",\"rut\":\"12345678-9\",\"ntelefono\":\"987654321\",\"clave\":\"password123\",\"estadoId\":1}"))
+                        .content("{\"pnombre\":\"Juan\",\"snombre\":\"Carlos\",\"papellido\":\"Pérez\",\"fnacimiento\":\"1995-05-15\",\"email\":\"juan.perez@email.com\",\"rut\":\"12345678-9\",\"ntelefono\":\"987654321\",\"clave\":\"password123\",\"estadoId\":1,\"rolId\":3}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.error").value("Business Validation Error"))

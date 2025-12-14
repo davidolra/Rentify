@@ -5,6 +5,7 @@ import com.rentify.propertyservice.model.Comuna;
 import com.rentify.propertyservice.model.Region;
 import com.rentify.propertyservice.repository.ComunaRepository;
 import com.rentify.propertyservice.repository.RegionRepository;
+import com.rentify.propertyservice.service.PropertyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,6 +33,7 @@ public class ComunaController {
     private final ComunaRepository comunaRepository;
     private final RegionRepository regionRepository;
     private final ModelMapper modelMapper;
+    private final PropertyService propertyService; // <-- INYECCIÓN DEL SERVICIO
 
     @PostMapping
     @Operation(summary = "Crear comuna", description = "Crea una nueva comuna")
@@ -56,9 +58,7 @@ public class ComunaController {
     public ResponseEntity<List<ComunaDTO>> listar() {
         log.debug("Listando todas las comunas");
 
-        List<ComunaDTO> comunas = comunaRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+        List<ComunaDTO> comunas = propertyService.listarTodasComunas();
 
         return ResponseEntity.ok(comunas);
     }
@@ -81,6 +81,7 @@ public class ComunaController {
             @Parameter(description = "ID de la región", example = "1")
             @PathVariable Long regionId) {
         log.debug("Obteniendo comunas de la región: {}", regionId);
+
 
         List<ComunaDTO> comunas = comunaRepository.findByRegionId(regionId).stream()
                 .map(this::convertToDTO)

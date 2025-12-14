@@ -25,6 +25,7 @@ public class PropertyService {
     private final PropertyRepository propertyRepository;
     private final TipoRepository tipoRepository;
     private final ComunaRepository comunaRepository;
+    private final RegionRepository regionRepository; // <-- INYECCIÓN CORREGIDA
     private final CategoriaRepository categoriaRepository;
     private final ModelMapper modelMapper;
 
@@ -264,6 +265,45 @@ public class PropertyService {
     public boolean existsProperty(Long id) {
         return propertyRepository.existsById(id);
     }
+
+    // ==================== LISTADO DE CATÁLOGOS (SOLUCIÓN AL ERROR 500) ====================
+
+    @Transactional(readOnly = true)
+    public List<TipoDTO> listarTodosTipos() {
+        log.debug("Listando todos los tipos.");
+
+        return tipoRepository.findAll().stream()
+                .map(tipo -> modelMapper.map(tipo, TipoDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<RegionDTO> listarTodasRegiones() {
+        log.debug("Listando todas las regiones.");
+
+        return regionRepository.findAll().stream()
+                .map(region -> modelMapper.map(region, RegionDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ComunaDTO> listarTodasComunas() {
+        log.debug("Listando todas las comunas.");
+
+        List<Comuna> comunas = comunaRepository.findAll();
+
+        // Mapeamos a DTO, forzando la inicialización del proxy de Region dentro de la transacción
+        return comunas.stream()
+                .map(comuna -> {
+                    // Forzar el acceso a la propiedad LAZY de Region dentro de la sesión activa
+                    comuna.getRegion().getNombre();
+
+                    return modelMapper.map(comuna, ComunaDTO.class);
+                })
+                .collect(Collectors.toList());
+    }
+
+    // ==================== FIN LISTADO DE CATÁLOGOS ====================
 
     private PropertyDTO convertToDTO(Property property, boolean includeDetails) {
         PropertyDTO dto = new PropertyDTO();

@@ -43,12 +43,15 @@ class UsuarioControllerTest {
 
     @BeforeEach
     void setUp() {
+
+        String fechaNacimientoValida = "1995-05-15";
+
         usuarioDTO = UsuarioDTO.builder()
                 .id(1L)
                 .pnombre("Juan")
                 .snombre("Carlos")
                 .papellido("Pérez")
-                .fnacimiento(LocalDate.of(1995, 5, 15))
+                .fnacimiento(fechaNacimientoValida)
                 .email("juan.perez@email.com")
                 .rut("12345678-9")
                 .ntelefono("987654321")
@@ -56,8 +59,8 @@ class UsuarioControllerTest {
                 .clave("password123")
                 .puntos(0)
                 .codigoRef("ABC123XYZ")
-                .fcreacion(LocalDate.now())
-                .factualizacion(LocalDate.now())
+                .fcreacion(LocalDate.now().toString())
+                .factualizacion(LocalDate.now().toString())
                 .estadoId(1L)
                 .rolId(3L)
                 .build();
@@ -94,6 +97,16 @@ class UsuarioControllerTest {
         // Arrange
         UsuarioDTO usuarioInvalido = UsuarioDTO.builder()
                 .email("invalido@email.com")
+                // Nota: No se incluye fnacimiento, si es @NotBlank dará 400.
+                .clave("password123")
+                .rut("12345678-9")
+                .pnombre("Faltante")
+                .papellido("Faltante")
+                .ntelefono("911111111")
+                .fcreacion(LocalDate.now().toString())
+                .factualizacion(LocalDate.now().toString())
+                .estadoId(1L)
+                .rolId(3L)
                 .build();
 
         // Act & Assert
@@ -155,7 +168,9 @@ class UsuarioControllerTest {
     @DisplayName("POST /api/usuarios - Debe retornar 400 cuando el usuario es menor de edad")
     void registrarUsuario_MenorDeEdad_Returns400() throws Exception {
         // Arrange
-        usuarioDTO.setFnacimiento(LocalDate.now().minusYears(17));
+        String fechaMenorEdadStr = LocalDate.now().minusYears(17).toString();
+        usuarioDTO.setFnacimiento(fechaMenorEdadStr);
+
         when(usuarioService.registrarUsuario(any(UsuarioDTO.class)))
                 .thenThrow(new BusinessValidationException("Debe ser mayor de 18 años"));
 
@@ -225,6 +240,16 @@ class UsuarioControllerTest {
         UsuarioDTO usuario2 = UsuarioDTO.builder()
                 .id(2L)
                 .email("maria@email.com")
+                .fnacimiento("1990-01-01")
+                .pnombre("Maria")
+                .papellido("Lopez")
+                .rut("11111111-1")
+                .ntelefono("999999999")
+                .clave("pass")
+                .fcreacion(LocalDate.now().toString())
+                .factualizacion(LocalDate.now().toString())
+                .estadoId(1L)
+                .rolId(3L)
                 .build();
         List<UsuarioDTO> usuarios = Arrays.asList(usuarioDTO, usuario2);
 
