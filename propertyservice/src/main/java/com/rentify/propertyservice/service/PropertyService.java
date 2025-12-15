@@ -25,7 +25,7 @@ public class PropertyService {
     private final PropertyRepository propertyRepository;
     private final TipoRepository tipoRepository;
     private final ComunaRepository comunaRepository;
-    private final RegionRepository regionRepository; // <-- INYECCIÓN CORREGIDA
+    private final RegionRepository regionRepository;
     private final CategoriaRepository categoriaRepository;
     private final ModelMapper modelMapper;
 
@@ -320,10 +320,24 @@ public class PropertyService {
         dto.setDireccion(property.getDireccion());
         dto.setFcreacion(property.getFcreacion());
 
+
         dto.setTipoId(property.getTipo().getId());
         dto.setComunaId(property.getComuna().getId());
 
         if (includeDetails) {
+
+
+            // 1. Inicializar colecciones (Fotos y Categorias)
+            property.getFotos().size();
+            property.getCategorias().size();
+
+            // 2. Inicializar relaciones de entidad simple (Tipo, Comuna y Región)
+            property.getTipo().getNombre();
+            property.getComuna().getNombre();
+            property.getComuna().getRegion().getNombre();
+            // ---------------------------------------------------------
+
+
             TipoDTO tipoDTO = modelMapper.map(property.getTipo(), TipoDTO.class);
             dto.setTipo(tipoDTO);
 
