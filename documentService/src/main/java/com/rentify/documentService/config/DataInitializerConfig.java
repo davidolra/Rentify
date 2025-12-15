@@ -6,145 +6,152 @@ import com.rentify.documentService.repository.EstadoRepository;
 import com.rentify.documentService.repository.TipoDocumentoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Configuración de inicialización de datos.
- * Puebla automáticamente las tablas con datos iniciales cuando el servicio arranca.
+ * Inicializador de datos maestros para Document Service.
+ * Se ejecuta automaticamente al iniciar la aplicacion.
+ * Solo puebla las tablas si estan vacias (no duplica datos).
  *
- * IMPORTANTE: Solo se ejecuta si las tablas están vacías (no duplica datos)
+ * IMPORTANTE: Usa ApplicationRunner en lugar de CommandLineRunner
+ * para garantizar que se ejecute despues de que Spring termine
+ * de configurar todos los beans y la base de datos.
  */
-@Configuration
+@Component
 @RequiredArgsConstructor
 @Slf4j
-public class DataInitializerConfig {
+@Order(1)
+public class DataInitializerConfig implements ApplicationRunner {
 
     private final EstadoRepository estadoRepository;
     private final TipoDocumentoRepository tipoDocumentoRepository;
 
+    @Override
+    @Transactional
+    public void run(ApplicationArguments args) throws Exception {
+        log.info("========================================================");
+        log.info("INICIANDO POBLADO DE DATOS MAESTROS - DOCUMENT SERVICE");
+        log.info("========================================================");
+
+        initEstados();
+        initTiposDocumento();
+        printSummary();
+    }
+
     /**
-     * Inicializa estados de documentos.
+     * Inicializa los estados de documentos.
      * Estados: PENDIENTE, ACEPTADO, RECHAZADO, EN_REVISION
      */
-    @Bean
-    @Order(1)
-    public CommandLineRunner initEstados() {
-        return args -> {
-            log.info("🔄 Verificando estados de documentos...");
+    private void initEstados() {
+        log.info("Verificando estados de documentos...");
 
-            if (estadoRepository.count() == 0) {
-                log.info("📝 Creando estados de documentos...");
+        long count = estadoRepository.count();
+        if (count > 0) {
+            log.info("Estados ya existen ({} registros). Saltando inicializacion.", count);
+            return;
+        }
 
-                Estado pendiente = Estado.builder()
-                        .nombre("PENDIENTE")
-                        .build();
+        log.info("Creando estados de documentos...");
 
-                Estado aceptado = Estado.builder()
-                        .nombre("ACEPTADO")
-                        .build();
+        // Estado 1: PENDIENTE
+        Estado pendiente = new Estado();
+        pendiente.setNombre("PENDIENTE");
+        estadoRepository.save(pendiente);
+        log.info("  - Creado: PENDIENTE (ID: {})", pendiente.getId());
 
-                Estado rechazado = Estado.builder()
-                        .nombre("RECHAZADO")
-                        .build();
+        // Estado 2: ACEPTADO
+        Estado aceptado = new Estado();
+        aceptado.setNombre("ACEPTADO");
+        estadoRepository.save(aceptado);
+        log.info("  - Creado: ACEPTADO (ID: {})", aceptado.getId());
 
-                Estado enRevision = Estado.builder()
-                        .nombre("EN_REVISION")
-                        .build();
+        // Estado 3: RECHAZADO
+        Estado rechazado = new Estado();
+        rechazado.setNombre("RECHAZADO");
+        estadoRepository.save(rechazado);
+        log.info("  - Creado: RECHAZADO (ID: {})", rechazado.getId());
 
-                estadoRepository.save(pendiente);
-                estadoRepository.save(aceptado);
-                estadoRepository.save(rechazado);
-                estadoRepository.save(enRevision);
+        // Estado 4: EN_REVISION
+        Estado enRevision = new Estado();
+        enRevision.setNombre("EN_REVISION");
+        estadoRepository.save(enRevision);
+        log.info("  - Creado: EN_REVISION (ID: {})", enRevision.getId());
 
-                log.info("✅ Estados creados exitosamente:");
-                log.info("   - ID 1: PENDIENTE");
-                log.info("   - ID 2: ACEPTADO");
-                log.info("   - ID 3: RECHAZADO");
-                log.info("   - ID 4: EN_REVISION");
-            } else {
-                log.info("✅ Estados ya existen ({} registros)", estadoRepository.count());
-            }
-        };
+        log.info("Estados creados exitosamente: {} registros", estadoRepository.count());
     }
 
     /**
-     * Inicializa tipos de documentos.
-     * Tipos: DNI, PASAPORTE, LIQUIDACION_SUELDO, etc.
+     * Inicializa los tipos de documentos.
+     * Tipos: DNI, PASAPORTE, LIQUIDACION_SUELDO, CERTIFICADO_ANTECEDENTES, CERTIFICADO_AFP, CONTRATO_TRABAJO
      */
-    @Bean
-    @Order(2)
-    public CommandLineRunner initTiposDocumento() {
-        return args -> {
-            log.info("🔄 Verificando tipos de documentos...");
+    private void initTiposDocumento() {
+        log.info("Verificando tipos de documentos...");
 
-            if (tipoDocumentoRepository.count() == 0) {
-                log.info("📝 Creando tipos de documentos...");
+        long count = tipoDocumentoRepository.count();
+        if (count > 0) {
+            log.info("Tipos de documento ya existen ({} registros). Saltando inicializacion.", count);
+            return;
+        }
 
-                TipoDocumento dni = TipoDocumento.builder()
-                        .nombre("DNI")
-                        .build();
+        log.info("Creando tipos de documentos...");
 
-                TipoDocumento pasaporte = TipoDocumento.builder()
-                        .nombre("PASAPORTE")
-                        .build();
+        // Tipo 1: DNI
+        TipoDocumento dni = new TipoDocumento();
+        dni.setNombre("DNI");
+        tipoDocumentoRepository.save(dni);
+        log.info("  - Creado: DNI (ID: {})", dni.getId());
 
-                TipoDocumento liquidacion = TipoDocumento.builder()
-                        .nombre("LIQUIDACION_SUELDO")
-                        .build();
+        // Tipo 2: PASAPORTE
+        TipoDocumento pasaporte = new TipoDocumento();
+        pasaporte.setNombre("PASAPORTE");
+        tipoDocumentoRepository.save(pasaporte);
+        log.info("  - Creado: PASAPORTE (ID: {})", pasaporte.getId());
 
-                TipoDocumento antecedentes = TipoDocumento.builder()
-                        .nombre("CERTIFICADO_ANTECEDENTES")
-                        .build();
+        // Tipo 3: LIQUIDACION_SUELDO
+        TipoDocumento liquidacion = new TipoDocumento();
+        liquidacion.setNombre("LIQUIDACION_SUELDO");
+        tipoDocumentoRepository.save(liquidacion);
+        log.info("  - Creado: LIQUIDACION_SUELDO (ID: {})", liquidacion.getId());
 
-                TipoDocumento afp = TipoDocumento.builder()
-                        .nombre("CERTIFICADO_AFP")
-                        .build();
+        // Tipo 4: CERTIFICADO_ANTECEDENTES
+        TipoDocumento antecedentes = new TipoDocumento();
+        antecedentes.setNombre("CERTIFICADO_ANTECEDENTES");
+        tipoDocumentoRepository.save(antecedentes);
+        log.info("  - Creado: CERTIFICADO_ANTECEDENTES (ID: {})", antecedentes.getId());
 
-                TipoDocumento contrato = TipoDocumento.builder()
-                        .nombre("CONTRATO_TRABAJO")
-                        .build();
+        // Tipo 5: CERTIFICADO_AFP
+        TipoDocumento afp = new TipoDocumento();
+        afp.setNombre("CERTIFICADO_AFP");
+        tipoDocumentoRepository.save(afp);
+        log.info("  - Creado: CERTIFICADO_AFP (ID: {})", afp.getId());
 
-                tipoDocumentoRepository.save(dni);
-                tipoDocumentoRepository.save(pasaporte);
-                tipoDocumentoRepository.save(liquidacion);
-                tipoDocumentoRepository.save(antecedentes);
-                tipoDocumentoRepository.save(afp);
-                tipoDocumentoRepository.save(contrato);
+        // Tipo 6: CONTRATO_TRABAJO
+        TipoDocumento contrato = new TipoDocumento();
+        contrato.setNombre("CONTRATO_TRABAJO");
+        tipoDocumentoRepository.save(contrato);
+        log.info("  - Creado: CONTRATO_TRABAJO (ID: {})", contrato.getId());
 
-                log.info("✅ Tipos de documento creados exitosamente:");
-                log.info("   - ID 1: DNI");
-                log.info("   - ID 2: PASAPORTE");
-                log.info("   - ID 3: LIQUIDACION_SUELDO");
-                log.info("   - ID 4: CERTIFICADO_ANTECEDENTES");
-                log.info("   - ID 5: CERTIFICADO_AFP");
-                log.info("   - ID 6: CONTRATO_TRABAJO");
-            } else {
-                log.info("✅ Tipos de documento ya existen ({} registros)", tipoDocumentoRepository.count());
-            }
-        };
+        log.info("Tipos de documento creados exitosamente: {} registros", tipoDocumentoRepository.count());
     }
 
     /**
-     * Resumen de inicialización.
+     * Imprime resumen de la inicializacion.
      */
-    @Bean
-    @Order(3)
-    public CommandLineRunner printInitializationSummary() {
-        return args -> {
-            log.info("════════════════════════════════════════════════════════");
-            log.info("🎉 INICIALIZACIÓN COMPLETADA - DOCUMENT SERVICE");
-            log.info("════════════════════════════════════════════════════════");
-            log.info("📊 Resumen:");
-            log.info("   - Estados: {} registros", estadoRepository.count());
-            log.info("   - Tipos de Documento: {} registros", tipoDocumentoRepository.count());
-            log.info("════════════════════════════════════════════════════════");
-            log.info("🚀 Document Service listo para recibir peticiones");
-            log.info("🔗 Puerto: 8083");
-            log.info("📖 Swagger UI: http://localhost:8083/swagger-ui/index.html");
-            log.info("════════════════════════════════════════════════════════");
-        };
+    private void printSummary() {
+        log.info("========================================================");
+        log.info("INICIALIZACION COMPLETADA - DOCUMENT SERVICE");
+        log.info("========================================================");
+        log.info("Resumen de datos:");
+        log.info("  - Estados: {} registros", estadoRepository.count());
+        log.info("  - Tipos de Documento: {} registros", tipoDocumentoRepository.count());
+        log.info("========================================================");
+        log.info("Document Service listo para recibir peticiones");
+        log.info("Puerto: 8083");
+        log.info("Swagger UI: http://localhost:8083/swagger-ui/index.html");
+        log.info("========================================================");
     }
 }
